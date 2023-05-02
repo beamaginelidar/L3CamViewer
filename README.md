@@ -26,9 +26,9 @@ You might also have to change the `LD_LIBRARY_PATH` environment variable in Qt C
 
 1. Open the project in Qt Creator.
 
-2. Go to Projects --> Build & Run --> <YOUR_COMPILING_KIT> --> Run.
+2. Go to Projects &rarr; Build & Run &rarr; `<YOUR_KIT>` &rarr; Run.
 
-3. Scroll to Environment and find the LD_LIBRARY_PATH.
+3. Scroll to Environment and find the `LD_LIBRARY_PATH` variable.
 
 4. Modify it so it points to: `<YOUR_WORKSPACE>/L3CamViewer/libs/opencv4` and `<YOUR_WORKSPACE>/L3CamViewer/libs/pcl-1.9.0`
 
