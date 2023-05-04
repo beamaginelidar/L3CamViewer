@@ -129,9 +129,9 @@ To initialize the L3Cam, click the `FAST INIT` button or follow these steps:
 
 The response of every button call is shown in the logger screen below the app.
 
-### Shutting L3Cam down
+### Power off L3Cam
 
-To shut down the device safely you should follow these steps:
+To power off the device safely you should follow these steps:
 
 1. (Optional) Click `STOP STREAM` and `STOP DEVICE`.
 
