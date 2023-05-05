@@ -40,8 +40,6 @@ Q_DECLARE_METATYPE(uint32_t)
 
 #include <QSpinBox>
 
-bool dev_initialized = false;
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -103,16 +101,16 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<std::vector<detectionImage> >("std::vector<detectionImage>");
 
-    connect(m_pointcloud_reader, SIGNAL(pointcloudReadyToShow(int32_t*, uint32_t)), this, SLOT(pointCloudReadyToShow(int32_t*, uint32_t)));
+    connect(m_pointcloud_reader, SIGNAL(pointcloudReadyToShow(int32_t*,uint32_t)), this, SLOT(pointCloudReadyToShow(int32_t*,uint32_t)));
 
-    connect(m_rgb_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*, uint16_t, uint16_t, uint8_t, std::vector<detectionImage>, uint32_t)),
-            this, SLOT(imageRgbReadyToShow(uint8_t*, uint16_t, uint16_t, uint8_t, std::vector<detectionImage>, uint32_t)));
+    connect(m_rgb_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)),
+            this, SLOT(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)));
 
-    connect(m_thermal_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*, uint16_t, uint16_t, uint8_t, std::vector<detectionImage>, uint32_t )),
-            this, SLOT(imageThermalReadyToShow(uint8_t*, uint16_t, uint16_t, uint8_t, std::vector<detectionImage>, uint32_t)));
+    connect(m_thermal_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)),
+            this, SLOT(imageThermalReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)));
 
-    connect(m_rgb_pol_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*, uint16_t, uint16_t, uint8_t, std::vector<detectionImage>, uint32_t )),
-            this, SLOT(imageRgbPolReadyToShow(uint8_t *, uint16_t , uint16_t , uint8_t , std::vector<detectionImage> , uint32_t )));
+    connect(m_rgb_pol_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)),
+            this, SLOT(imageRgbPolReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)));
 
     m_thermal_status = deviceStatus::undefined;
     m_polarimetric_status = deviceStatus::undefined;
@@ -129,6 +127,8 @@ MainWindow::MainWindow(QWidget *parent) :
     updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
 
     initializeGUI();
+
+    dev_initialized = false;
 
     m_library_version = QString("%1").arg(GET_VERSION());
 }
@@ -1147,6 +1147,77 @@ void MainWindow::drawDetections(cv::Mat &image_to_show, std::vector<detectionIma
     }
 }
 
+void MainWindow::updateSensorStatus(uint8_t device_status, QLabel *status_label)
+{
+    QString status = "";
+    QString style = m_status_undefined_style;
+
+    switch(device_status){
+
+    case deviceStatus::undefined:
+        style = m_status_undefined_style;
+        break;
+    case deviceStatus::no_error:
+        style = m_status_connected_style;
+        status = "OK";
+        break;
+    case deviceStatus::alarm:
+        style = m_status_alarm_style;
+        status = "ALARM";
+        break;
+    case deviceStatus::error_s:
+        style = m_status_error_style;
+        status = "ERROR";
+        break;
+    }
+
+    status_label->setStyleSheet(style);
+    status_label->setText(status);
+}
+
+void MainWindow::initializeSystemStatus()
+{
+
+    (m_thermal_sensor != NULL) ? m_thermal_status = deviceStatus::no_error : m_thermal_status = deviceStatus::error_s;
+    (m_lidar_sensor != NULL) ? m_lidar_status = deviceStatus::no_error : m_lidar_status = deviceStatus::error_s;
+    (m_pol_sensor != NULL) ? m_polarimetric_status = deviceStatus::no_error : m_polarimetric_status = deviceStatus::error_s;
+    (m_rgb_sensor != NULL) ? m_rgb_status = deviceStatus::no_error : m_rgb_status = deviceStatus::error_s;
+    (m_allied_wide_sensor != NULL) ? m_allied_wide_status = deviceStatus::no_error : m_allied_wide_status = deviceStatus::error_s;
+    (m_allied_narrow_sensor != NULL) ? m_allied_narrow_status = deviceStatus::no_error : m_allied_narrow_status = deviceStatus::error_s;
+
+    updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
+    updateSensorStatus(m_polarimetric_status, ui->label_polarimetric_status_value);
+    updateSensorStatus(m_rgb_status, ui->label_rgb_status_value);
+    updateSensorStatus(m_lidar_status, ui->label_lidar_status_value);
+    updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
+    updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
+
+}
+
+void MainWindow::addMessageToLogWindow(QString message, uint8_t level)
+{
+    QColor color;
+
+    switch(level){
+    case logType::error:
+        color = Qt::red;
+        break;
+    case logType::warning:
+        color = Qt::darkYellow;
+        break;
+    case logType::verbose:
+        color = Qt::black;
+        break;
+    }
+
+    QString now = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss:zzz");
+    ui->listWidget_log_window->addItem(QString("[%1] %2").arg(now).arg(message));
+    int items = ui->listWidget_log_window->count();
+    ui->listWidget_log_window->item(items-1)->setForeground(color);
+    ui->listWidget_log_window->scrollToBottom();
+}
+
+
 void MainWindow::valueChangedCode(int value)
 {
     qDebug()<<"SLOT POR CODIGO"<<value;
@@ -1803,76 +1874,6 @@ void MainWindow::on_pushButton_long_range_clicked()
 void MainWindow::on_pushButton_short_range_clicked()
 {
     SET_BIAS_SHORT_RANGE(m_devices[0]);
-}
-
-void MainWindow::updateSensorStatus(uint8_t device_status, QLabel *status_label)
-{
-    QString status = "";
-    QString style = m_status_undefined_style;
-
-    switch(device_status){
-
-    case deviceStatus::undefined:
-        style = m_status_undefined_style;
-        break;
-    case deviceStatus::no_error:
-        style = m_status_connected_style;
-        status = "OK";
-        break;
-    case deviceStatus::alarm:
-        style = m_status_alarm_style;
-        status = "ALARM";
-        break;
-    case deviceStatus::error_s:
-        style = m_status_error_style;
-        status = "ERROR";
-        break;
-    }
-
-    status_label->setStyleSheet(style);
-    status_label->setText(status);
-}
-
-void MainWindow::initializeSystemStatus()
-{
-
-    (m_thermal_sensor != NULL) ? m_thermal_status = deviceStatus::no_error : m_thermal_status = deviceStatus::error_s;
-    (m_lidar_sensor != NULL) ? m_lidar_status = deviceStatus::no_error : m_lidar_status = deviceStatus::error_s;
-    (m_pol_sensor != NULL) ? m_polarimetric_status = deviceStatus::no_error : m_polarimetric_status = deviceStatus::error_s;
-    (m_rgb_sensor != NULL) ? m_rgb_status = deviceStatus::no_error : m_rgb_status = deviceStatus::error_s;
-    (m_allied_wide_sensor != NULL) ? m_allied_wide_status = deviceStatus::no_error : m_allied_wide_status = deviceStatus::error_s;
-    (m_allied_narrow_sensor != NULL) ? m_allied_narrow_status = deviceStatus::no_error : m_allied_narrow_status = deviceStatus::error_s;
-
-    updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
-    updateSensorStatus(m_polarimetric_status, ui->label_polarimetric_status_value);
-    updateSensorStatus(m_rgb_status, ui->label_rgb_status_value);
-    updateSensorStatus(m_lidar_status, ui->label_lidar_status_value);
-    updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
-    updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
-
-}
-
-void MainWindow::addMessageToLogWindow(QString message, uint8_t level)
-{
-    QColor color;
-
-    switch(level){
-    case logType::error:
-        color = Qt::red;
-        break;
-    case logType::warning:
-        color = Qt::darkYellow;
-        break;
-    case logType::verbose:
-        color = Qt::black;
-        break;
-    }
-
-    QString now = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss:zzz");
-    ui->listWidget_log_window->addItem(QString("[%1] %2").arg(now).arg(message));
-    int items = ui->listWidget_log_window->count();
-    ui->listWidget_log_window->item(items-1)->setForeground(color);
-    ui->listWidget_log_window->scrollToBottom();
 }
 
 void MainWindow::on_actionAbout_triggered()

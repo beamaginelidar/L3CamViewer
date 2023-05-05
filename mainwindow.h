@@ -75,6 +75,12 @@ private:
 
     void drawDetections(cv::Mat &image_to_show, std::vector<detectionImage> detections, uint8_t threshold);
 
+    void updateSensorStatus(uint8_t device_status, QLabel *status_label);
+
+    void initializeSystemStatus();
+
+    void addMessageToLogWindow(QString message, uint8_t level=logType::verbose);
+
 private slots:
 
     void valueChangedCode(int value);
@@ -299,12 +305,6 @@ private slots:
 
     void on_pushButton_short_range_clicked();
 
-    void updateSensorStatus(uint8_t device_status, QLabel *status_label);
-
-    void initializeSystemStatus();
-
-    void addMessageToLogWindow(QString message, uint8_t level=logType::verbose);
-
     void on_actionAbout_triggered();
 
     void on_comboBox_background_currentIndexChanged(int index);
@@ -320,6 +320,16 @@ private:
 
     pclPointCloudViewerController *m_point_cloud_viewer;
 
+    l3cam m_devices[1];
+    sensor m_sensors[6];
+
+    sensor *m_rgb_sensor;
+    sensor *m_thermal_sensor;
+    sensor *m_lidar_sensor;
+    sensor *m_pol_sensor;
+    sensor *m_allied_narrow_sensor;
+    sensor *m_allied_wide_sensor;
+
     QString m_library_version;
     QString m_status_connected_style;
     QString m_status_error_style;
@@ -331,11 +341,6 @@ private:
 
     QTimer *m_search_timer;
     QTimer *m_rgb_value_changed;
-
-    uint16_t m_pcd_port;
-    uint16_t m_rgb_port;
-    uint16_t m_thermal_port;
-    uint16_t m_rgbp_port;
 
 
     int m_rgb_contrast;
@@ -355,15 +360,19 @@ private:
     int m_max_intensity;
     int m_min_intensity;
 
-    l3cam m_devices[1];
-    sensor m_sensors[6];
+    uint16_t m_pcd_port;
+    uint16_t m_rgb_port;
+    uint16_t m_thermal_port;
+    uint16_t m_rgbp_port;
 
-    sensor *m_rgb_sensor;
-    sensor *m_thermal_sensor;
-    sensor *m_lidar_sensor;
-    sensor *m_pol_sensor;
-    sensor *m_allied_narrow_sensor;
-    sensor *m_allied_wide_sensor;
+    uint8_t m_current_allied_camera;
+
+    uint8_t m_thermal_status;
+    uint8_t m_polarimetric_status;
+    uint8_t m_lidar_status;
+    uint8_t m_rgb_status;
+    uint8_t m_allied_wide_status;
+    uint8_t m_allied_narrow_status;
 
     bool m_searching_device;
     bool m_searching_status;
@@ -374,14 +383,7 @@ private:
     bool m_device_started;
     bool m_device_streaming;
 
-    uint8_t m_current_allied_camera;
-
-    uint8_t m_thermal_status;
-    uint8_t m_polarimetric_status;
-    uint8_t m_lidar_status;
-    uint8_t m_rgb_status;
-    uint8_t m_allied_wide_status;
-    uint8_t m_allied_narrow_status;
+    bool dev_initialized;
 
 };
 
