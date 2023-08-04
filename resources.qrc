@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>resources/icon.png</file>
+        <file>resources/res10_300x300_ssd_iter_140000_fp16.caffemodel</file>
+        <file>resources/deploy.prototxt</file>
     </qresource>
 </RCC>

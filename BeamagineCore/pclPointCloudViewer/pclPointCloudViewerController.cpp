@@ -31,11 +31,12 @@
 #include "QString"
 #include <QDebug>
 #include <QElapsedTimer>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <vtkTransform.h>
+
 
 pcl::visualization::CloudViewer viewer ("Lidar Viewer");
 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <vtkTransform.h>
 
 bool point_cloud_ready = false;
 bool first_frame_received = false;
@@ -72,7 +73,8 @@ void pointPickingEventOccurred (const pcl::visualization::PointPickingEvent& eve
         event.getPoint(x, y, z);
 
         QString selected = "";
-        selected = QString("Point coordinate (%1,%2,%3)").arg(x).arg(y).arg(z);
+        float distance = sqrt((x*x)+(y*y)+(z*z))/1000.0;
+        selected = QString("Point coordinate (%1,%2,%3) - Distance %4 m").arg(x).arg(y).arg(z).arg(distance);
 
         if(index < m_intensities.size()){
             selected += QString(" - Intensity %1").arg(m_intensities.at(index));

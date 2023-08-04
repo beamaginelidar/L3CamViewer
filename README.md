@@ -20,7 +20,7 @@ sudo dpkg -i <PACKAGE>
 
 This package relies on the OpenCV 4 and PCL 1.9.0 libraries for data visualization. 
 
-You might have to change some parts of the `L3CamViewer.pro` file and put the routes to where the PCL library is located on your PC instead of `/home/beamagine/(...)`.
+You might have to change some parts of the `L3CamViewer.pro` file and put the routes to where the PCL library is located on your PC instead of `$(HOME)/(...)`.
 
 You might also have to change the `LD_LIBRARY_PATH` environment variable in Qt Creator. To do so:
 

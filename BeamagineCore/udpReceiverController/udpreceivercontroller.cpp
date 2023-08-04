@@ -102,7 +102,7 @@ void udpReceiverController::stopController()
         m_event_handlers.clear();
 
     }catch(...){
-        qDebug()<<"Unhandled error at pclPointCloudViewerController::stopController";
+        qDebug()<<"Unhandled error at udpReceiverController::stopController";
     }
 }
 
@@ -125,7 +125,7 @@ void udpReceiverController::run()
 
 void udpReceiverController::customEvent(QEvent *event)
 {
-
+    Q_UNUSED(event);
 }
 
 

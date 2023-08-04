@@ -32,17 +32,26 @@
 #include <QTimer>
 #include <QCloseEvent>
 #include <QLabel>
+#include <QLineEdit>
 
 #include <libs/libL3Cam/libL3Cam.h>
 #include "libL3Cam.h"
+#include "libL3Cam_polarimetric.h"
+#include "libL3Cam_econ.h"
+#include "libL3Cam_thermal.h"
+#include "libL3Cam_allied.h"
 #include "beamagine.h"
 #include "beamErrors.h"
 
 #include <udpreceivercontroller.h>
+#include <saveDataManager.h>
+#include <imageSaveDataExecutor.h>
+#include <pointCloudSaveDataExecutor.h>
 
 #include <pclPointCloudViewerController.h>
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/dnn/dnn.hpp>
 
 typedef struct logType{
     static const uint8_t error = 0;
@@ -62,6 +71,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void setMainWindowObj(MainWindow *ptr);
+
 private:
     void deviceDetected();
 
@@ -69,11 +80,25 @@ private:
 
     void initializeRgbDefault();
 
+    void initializePolDefault();
+
     void initializeReceivers();
 
     void closeEvent(QCloseEvent *event);
 
     void drawDetections(cv::Mat &image_to_show, std::vector<detectionImage> detections, uint8_t threshold);
+
+    void setPathToSaveData(QLineEdit *line_edit);
+
+    void enableSaveConfiguration();
+
+    void changeSaveDataSettings();
+
+    void checkAllFramesSaved();
+
+    void loadBlurringNetworks();
+
+    void applyFaceBlurring(cv::Mat &image);
 
     void updateSensorStatus(uint8_t device_status, QLabel *status_label);
 
@@ -81,9 +106,14 @@ private:
 
     void addMessageToLogWindow(QString message, uint8_t level=logType::verbose);
 
+    static void errorNotification(int const *error);
+
+public slots:
+
+    void updateSensorError(int32_t error);
+
 private slots:
 
-    void valueChangedCode(int value);
     void on_pushButton_getVersion_clicked();
 
     void on_pushButton_initialize_clicked();
@@ -168,7 +198,7 @@ private slots:
 
     void on_radioButton_fusion_mono_clicked(bool checked);
 
-    void pointCloudReadyToShow(int32_t* pointcloud, uint32_t timestamp);
+    void pointCloudReadyToShow(int32_t* pointcloud_data, uint32_t timestamp);
 
     void imageRgbReadyToShow(uint8_t* image_data, uint16_t height, uint16_t width, uint8_t channels, std::vector<detectionImage> detections, uint32_t timestamp);
 
@@ -185,6 +215,8 @@ private slots:
     void on_pushButton_depth_rtsp_clicked();
 
     void on_pushButton_rgb_rtsp_clicked();
+
+    void on_pushButton_pol_rtsp_clicked();
 
     void on_pushButton_ther_rtsp_clicked();
 
@@ -300,7 +332,6 @@ private slots:
 
     void on_pushButton_get_allied_pipeline_clicked();
 
-
     void on_pushButton_long_range_clicked();
 
     void on_pushButton_short_range_clicked();
@@ -309,6 +340,90 @@ private slots:
 
     void on_comboBox_background_currentIndexChanged(int index);
 
+    void on_checkBox_save_pointcloud_clicked(bool checked);
+
+    void on_checkBox_save_thermal_clicked(bool checked);
+
+    void on_checkBox_save_rgb_clicked(bool checked);
+
+    void on_checkBox_save_pol_clicked(bool checked);
+
+    void on_checkBox_save_wide_clicked(bool checked);
+
+    void on_checkBox_save_narrow_clicked(bool checked);
+
+    void on_pushButton_save_pointcloud_clicked();
+
+    void on_pushButton_save_thermal_clicked();
+
+    void on_pushButton_save_rgb_clicked();
+
+    void on_pushButton_save_pol_clicked();
+
+    void on_pushButton_save_wide_clicked();
+
+    void on_pushButton_save_narrow_clicked();
+
+    void thermalSaveExecutorIsAvailable(bool available);
+
+    void rgbSaveExecutorIsAvailable(bool available);
+
+    void pointcloudSaveExecutorIsAvailable(bool available);
+
+    void polSaveExecutorIsAvailable(bool available);
+
+    void thermalImageToSaveReceived(imageData data);
+
+    void rgbImageToSaveReceived(imageData data);
+
+    void pointcloudToSaveReceived(pointcloudData data);
+
+    void polImageToSaveReceived(imageData data);
+
+    void on_checkBox_blur_faces_clicked(bool checked);
+
+    void on_pushButton_save_clicked();
+
+    void on_horizontalSlider_pol_bri_sliderReleased();
+
+    void on_pushButton_pol_black_level_clicked();
+
+    void on_horizontalSlider_pol_gain_sliderReleased();
+
+    void on_checkBox_pol_gain_clicked(bool checked);
+
+    void on_pushButton_set_pol_gain_minmax_clicked();
+
+    void on_checkBox_pol_exposure_clicked(bool checked);
+
+    void on_pushButton_pol_exposure_clicked();
+
+    void on_pushButton_set_pol_expo_minmax_clicked();
+
+    void on_horizontalSlider_pol_bri_valueChanged(int value);
+
+    void on_horizontalSlider_pol_gain_valueChanged(int value);
+
+    void on_pushButton_restore_pol_default_clicked();
+
+    void on_pushButton_set_pol_protocol_clicked();
+
+    void on_pushButton_get_pol_pipeline_clicked();
+
+    void on_pushButton_get_curr_params_clicked();
+
+    void on_checkBox_auto_bias_clicked(bool checked);
+
+    void on_horizontalSlider_bias_valueChanged(int value);
+
+    void on_horizontalSlider_bias_left_valueChanged(int value);
+
+    void on_horizontalSlider_bias_sliderReleased();
+
+    void on_horizontalSlider_bias_left_sliderReleased();
+
+    void pointSelectedNotification(QString data);
+
 private:
     Ui::MainWindow *ui;
 
@@ -316,6 +431,18 @@ private:
     udpReceiverController *m_thermal_image_reader;
     udpReceiverController *m_pointcloud_reader;
     udpReceiverController *m_rgb_pol_image_reader;
+
+    saveDataManager* m_save_thermal_image_manager;
+    imageSaveDataExecutor *m_save_thermal_image_executor;
+
+    saveDataManager* m_save_rgb_image_manager;
+    imageSaveDataExecutor *m_save_rgb_image_executor;
+
+    saveDataManager* m_save_pointcloud_manager;
+    pointCloudSaveDataExecutor *m_save_pointcloud_executor;
+
+    saveDataManager *m_save_polarimetric_manager;
+    imageSaveDataExecutor *m_save_polarimetric_executor;
 
 
     pclPointCloudViewerController *m_point_cloud_viewer;
@@ -330,6 +457,8 @@ private:
     sensor *m_allied_narrow_sensor;
     sensor *m_allied_wide_sensor;
 
+    cv::dnn::Net m_faces_net;
+
     QString m_library_version;
     QString m_status_connected_style;
     QString m_status_error_style;
@@ -339,9 +468,23 @@ private:
 
     QString m_server_address;
 
+    QString m_red_button_style;
+    QString m_green_button_style;
+
+    QString m_path_to_save_thermal;
+    QString m_path_to_save_pol;
+    QString m_path_to_save_pointcloud;
+    QString m_path_to_save_rgb;
+    QString m_path_to_save_wide;
+    QString m_path_to_save_narrow;
+
     QTimer *m_search_timer;
     QTimer *m_rgb_value_changed;
 
+    float m_pol_black_level;
+    float m_pol_exposure;
+    float m_pol_auto_exposure_min;
+    float m_pol_auto_exposure_max;
 
     int m_rgb_contrast;
     int m_rgb_brightness;
@@ -351,6 +494,11 @@ private:
     int m_rgb_gain;
     int m_rgb_white_balance;
     int m_rgb_exposure_time;
+
+    int m_pol_brightness;
+    int m_pol_gain;
+    int m_pol_auto_gain_min;
+    int m_pol_auto_gain_max;
 
     int m_devices_connected;
     int m_sensors_connected;
@@ -364,6 +512,14 @@ private:
     uint16_t m_rgb_port;
     uint16_t m_thermal_port;
     uint16_t m_rgbp_port;
+
+    int16_t m_save_images_counter;
+    int16_t m_save_images_rgb_counter;
+    int16_t m_save_pointcloud_counter;
+    int16_t m_save_thermal_counter;
+    int16_t m_save_pol_counter;
+    int16_t m_save_wide_counter;
+    int16_t m_save_narrow_counter;
 
     uint8_t m_current_allied_camera;
 
@@ -380,8 +536,25 @@ private:
     bool m_rgb_auto_exp;
     bool m_rgb_auto_white;
 
+    bool m_pol_auto_gain;
+    bool m_pol_auto_exposure;
+
     bool m_device_started;
     bool m_device_streaming;
+
+    bool m_save_thermal_image;
+    bool m_save_pol_image;
+    bool m_save_pointcloud;
+    bool m_save_rgb_image;
+    bool m_save_wide_image;
+    bool m_save_narrow_image;
+
+    bool m_save_data;
+
+    bool m_save_all;
+
+    bool m_blurring_loaded;
+    bool m_apply_blurring;
 
     bool dev_initialized;
 

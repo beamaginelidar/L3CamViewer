@@ -71,5 +71,24 @@ struct visualizationTypes{
     static const int FUSION_ALLIED_WIDE = 13;
 };
 
+typedef struct tPointCloudUdp{
+    int32_t size;
+    int32_t *data_buffer;
+}tPointCloudUdp;
+
+typedef struct tPointPcd {
+    int32_t x;
+    int32_t y;
+    int32_t z;
+    int32_t intensity;
+    int32_t RGB;
+}tPointPcd;
+
+typedef struct indexTdc{
+    static const uint8_t right = 1;
+    static const uint8_t left = 2;
+    static const uint8_t both = 3;
+}indexTdc;
+
 #endif // BEAM_AUX_H
 

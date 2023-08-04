@@ -30,6 +30,12 @@ SOURCES += \
         BeamagineCore/pclPointCloudViewer/pclPointCloudViewerControllerMessages.cpp \
         BeamagineCore/udpReceiverController/udpReceiverControllerMessages.cpp \
         BeamagineCore/udpReceiverController/udpreceivercontroller.cpp \
+        BeamagineCore/saveDataManager/imageSaveDataExecutor.cpp \
+        BeamagineCore/saveDataManager/imageSaveDataExecutorMessages.cpp \
+        BeamagineCore/saveDataManager/pointCloudSaveDataExecutor.cpp \
+        BeamagineCore/saveDataManager/pointCloudSaveDataExecutorMessages.cpp \
+        BeamagineCore/saveDataManager/saveDataManager.cpp \
+        BeamagineCore/saveDataManager/saveDataManagerMessages.cpp \
         main.cpp \
         mainwindow.cpp
 
@@ -38,9 +44,15 @@ HEADERS += \
         BeamagineCore/pclPointCloudViewer/pclPointCloudViewerControllerMessages.h \
         BeamagineCore/udpReceiverController/udpReceiverControllerMessages.h \
         BeamagineCore/udpReceiverController/udpreceivercontroller.h \
+        BeamagineCore/saveDataManager/imageSaveDataExecutor.h \
+        BeamagineCore/saveDataManager/imageSaveDataExecutorMessages.h \
+        BeamagineCore/saveDataManager/pointCloudSaveDataExecutor.h \
+        BeamagineCore/saveDataManager/pointCloudSaveDataExecutorMessages.h \
+        BeamagineCore/saveDataManager/saveDataManager.h \
+        BeamagineCore/saveDataManager/saveDataManagerMessages.h \
+        BeamagineCore/saveDataManager/saveDataStructs.h \
         BeamagineCore/beam_aux.h \
         mainwindow.h
-
 
 FORMS += \
         mainwindow.ui
@@ -49,24 +61,27 @@ INCLUDEPATH += \
         libs/libL3Cam/ \
         BeamagineCore/udpReceiverController/ \
         BeamagineCore/pclPointCloudViewer/ \
+        BeamagineCore/saveDataManager/ \
         BeamagineCore/
 
 INCLUDEPATH += /usr/local/include/opencv4/ \
 
 
-LIBS += -Llibs/opencv4/ \
+LIBS += -L$$PWD/libs/opencv4/ \
     -lopencv_core \
     -lopencv_highgui \
     -lopencv_imgproc \
-    -lopencv_imgcodecs
+    -lopencv_imgcodecs \
+    -lopencv_dnn
 
 
-INCLUDEPATH += /home/beamagine/pcl-1.9.0/libs/include/pcl-1.9 \
+# TODO: Modify INCLUDEPATH to match your environment
+INCLUDEPATH += $(HOME)/pcl-1.9.0/libs/include/pcl-1.9 \
                /usr/include/eigen3/ \
                /usr/include/vtk-7.1/
 
 
-LIBS += -Llibs/pcl-1.9.0 \
+LIBS += -L$$PWD/libs/pcl-1.9.0 \
     -lpcl_common \
     -lpcl_features \
     -lpcl_filters \
@@ -84,7 +99,7 @@ LIBS += -lboost_system \
 
 
 qmx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /home/beamagine/l3cam
+else: unix:!android: target.path = $(HOME)/l3cam
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \

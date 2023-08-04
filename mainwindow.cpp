@@ -30,15 +30,20 @@
 
 #include <QDebug>
 #include <QMessageBox>
-#include <QDateTime>
+#include <QFileDialog>
+#include <QTemporaryDir>
 
 Q_DECLARE_METATYPE(uint16_t)
 Q_DECLARE_METATYPE(uint8_t)
 Q_DECLARE_METATYPE(int32_t)
 Q_DECLARE_METATYPE(std::vector<detectionImage>)
+Q_DECLARE_METATYPE(pointcloudData)
+Q_DECLARE_METATYPE(imageData)
 Q_DECLARE_METATYPE(uint32_t)
 
 #include <QSpinBox>
+
+static MainWindow *mainWindowObj = nullptr;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -46,11 +51,19 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+
+    QString title = "L3Cam Viewer - " + qApp->applicationVersion();
+    this->setWindowTitle(title);
+
     m_status_connected_style  = "border-radius: 5px; background-color: rgb(114,255,158); color:rgb(0,0,0);";
     m_status_error_style = "border-radius: 5px; background-color: rgb(255,114,114); color:rgb(0,0,0);";
     m_status_alarm_style = "border-radius: 5px; background-color: rgb(255,255,158); color:rgb(0,0,0);";
     m_status_searching_style = "border-radius: 5px; background-color: rgb(114,158,255); color:rgb(0,0,0);";
     m_status_undefined_style = "border-radius: 5px; background-color: rgb(190,190,190); color:rgb(0,0,0);";
+
+    m_red_button_style = "border-radius: 50px; border: 2px solid #555; background-color: rgb(250, 47, 23); outline: 0px;";
+    m_green_button_style = "border-radius: 50px; border: 2px solid #555; background-color: rgb(105, 224, 106); outline: 0px;";
 
     ui->label_image_rgb->setBackgroundRole(QPalette::Base);
     ui->label_image_rgb->setScaledContents(true);
@@ -61,11 +74,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->label_l3cam_status->setStyleSheet(m_status_undefined_style);
 
+    ui->pushButton_save->setStyleSheet(m_green_button_style);
+
     m_searching_device = false;
     m_searching_status = false;
     m_search_timer = new QTimer();
     connect(m_search_timer, SIGNAL(timeout()), this, SLOT(searchTimerTimeOut()));
-    connect(ui->spinBox_max_temperature, SIGNAL(valueChanged(int)), this, SLOT(valueChangedCode(int)));
 
     m_devices_connected = 0;
     m_sensors_connected = 0;
@@ -95,11 +109,38 @@ MainWindow::MainWindow(QWidget *parent) :
     m_max_intensity = 3000;
     m_min_intensity = 0;
 
+    m_save_pointcloud = false;
+    m_save_pol_image = false;
+    m_save_thermal_image = false;
+    m_save_rgb_image = false;
+    m_save_wide_image = false;
+    m_save_narrow_image = false;
+
+    m_save_thermal_image_executor = new imageSaveDataExecutor();
+    m_save_thermal_image_manager = new saveDataManager();
+
+    m_save_rgb_image_manager = new saveDataManager();
+    m_save_rgb_image_executor = new imageSaveDataExecutor();
+
+    m_save_pointcloud_manager = new saveDataManager();
+    m_save_pointcloud_executor = new pointCloudSaveDataExecutor();
+
+    m_save_polarimetric_manager = new saveDataManager();
+    m_save_polarimetric_executor = new imageSaveDataExecutor();
+
+    m_save_thermal_image_manager->setDataTypeToSave(images);
+    m_save_rgb_image_manager->setDataTypeToSave(images);
+    m_save_pointcloud_manager->setDataTypeToSave(pointcloud);
+    m_save_polarimetric_manager->setDataTypeToSave(images);
+
+
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint8_t>("uint8_t");
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<std::vector<detectionImage> >("std::vector<detectionImage>");
+    qRegisterMetaType<pointcloudData>("pointcloudData");
+    qRegisterMetaType<imageData>("imageData");
 
     connect(m_pointcloud_reader, SIGNAL(pointcloudReadyToShow(int32_t*,uint32_t)), this, SLOT(pointCloudReadyToShow(int32_t*,uint32_t)));
 
@@ -111,6 +152,42 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_rgb_pol_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)),
             this, SLOT(imageRgbPolReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)));
+
+    connect(m_save_thermal_image_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(thermalSaveExecutorIsAvailable(bool)));
+    connect(m_save_thermal_image_manager, SIGNAL(sendImageToSave(imageData)), this, SLOT(thermalImageToSaveReceived(imageData)));
+
+    connect(m_save_rgb_image_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(rgbSaveExecutorIsAvailable(bool)));
+    connect(m_save_rgb_image_manager, SIGNAL(sendImageToSave(imageData)), this, SLOT(rgbImageToSaveReceived(imageData)));
+
+    connect(m_save_pointcloud_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(pointcloudSaveExecutorIsAvailable(bool)));
+    connect(m_save_pointcloud_manager, SIGNAL(sendPointCloudToSave(pointcloudData)), this, SLOT(pointcloudToSaveReceived(pointcloudData)));
+
+    connect(m_save_polarimetric_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(polSaveExecutorIsAvailable(bool)));
+    connect(m_save_polarimetric_manager, SIGNAL(sendImageToSave(imageData)), this, SLOT(polImageToSaveReceived(imageData)));
+
+    m_save_data = false;
+    m_save_images_counter = 0;
+    m_save_images_rgb_counter = 0;
+    m_save_pointcloud_counter = 0;
+    m_save_thermal_counter = 0;
+    m_save_pol_counter = 0;
+    m_save_wide_counter = 0;
+    m_save_narrow_counter = 0;
+
+    m_save_all = false;
+
+    m_blurring_loaded = false;
+    m_apply_blurring = false;
+
+
+    m_path_to_save_thermal = QDir::homePath() + "/";
+    m_path_to_save_pol = QDir::homePath() + "/";
+    m_path_to_save_pointcloud = QDir::homePath() + "/";
+    m_path_to_save_rgb = QDir::homePath() + "/";
+    m_path_to_save_wide = QDir::homePath() + "/";
+    m_path_to_save_narrow = QDir::homePath() + "/";
+
+    enableSaveConfiguration();
 
     m_thermal_status = deviceStatus::undefined;
     m_polarimetric_status = deviceStatus::undefined;
@@ -126,16 +203,27 @@ MainWindow::MainWindow(QWidget *parent) :
     updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
     updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
 
-    initializeGUI();
-
     dev_initialized = false;
 
+    //!load face blurring
+    loadBlurringNetworks();
+
+    initializeGUI();
+
     m_library_version = QString("%1").arg(GET_VERSION());
+
+    //!Always go to first tab
+    ui->tabWidget->setCurrentIndex(0);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::setMainWindowObj(MainWindow *ptr)
+{
+    mainWindowObj = ptr;
 }
 
 void MainWindow::deviceDetected()
@@ -202,11 +290,15 @@ void MainWindow::deviceDetected()
 void MainWindow::initializeGUI()
 {
     initializeRgbDefault();
+    initializePolDefault();
 
     ui->pushButton_start_device->setEnabled(false);
     ui->pushButton_start_streaming->setEnabled(false);
 
     m_point_cloud_viewer = new pclPointCloudViewerController();
+
+    connect(m_point_cloud_viewer, SIGNAL(sendPointSelectedData(QString)), this, SLOT(pointSelectedNotification(QString)));
+
     m_point_cloud_viewer->startController();
     m_point_cloud_viewer->setAxisEnabled(true);
 
@@ -250,6 +342,42 @@ void MainWindow::initializeRgbDefault()
 
 }
 
+void MainWindow::initializePolDefault()
+{
+    m_pol_brightness = 127;
+    m_pol_black_level = 6.0;
+    m_pol_gain = 24;
+    m_pol_auto_gain_min = 0;
+    m_pol_auto_gain_max = 48;
+    m_pol_exposure = 500000.0;
+    m_pol_auto_exposure_min = 33.456;
+    m_pol_auto_exposure_max = 1000000000.0;
+
+    m_pol_auto_gain = true;
+    m_pol_auto_exposure = true;
+
+    ui->horizontalSlider_pol_bri->setValue(m_pol_brightness);
+    ui->doubleSpinBox_black_level->setValue(m_pol_black_level);
+    ui->horizontalSlider_pol_gain->setValue(m_pol_gain);
+    ui->checkBox_pol_gain->setChecked(m_pol_auto_gain);
+    ui->doubleSpinBox_pol_gain_min->setValue(m_pol_auto_gain_min);
+    ui->doubleSpinBox_pol_gain_max->setValue(m_pol_auto_gain_max);
+    ui->checkBox_pol_exposure->setChecked(m_pol_auto_exposure);
+    ui->doubleSpinBox_pol_expo->setValue(m_pol_exposure);
+    ui->doubleSpinBox_pol_expo_min->setValue(m_pol_auto_exposure_min);
+    ui->doubleSpinBox_pol_expo_max->setValue(m_pol_auto_exposure_max);
+
+    ui->horizontalSlider_pol_gain->setDisabled(m_pol_auto_gain);
+    ui->doubleSpinBox_pol_gain_min->setEnabled(m_pol_auto_gain);
+    ui->doubleSpinBox_pol_gain_max->setEnabled(m_pol_auto_gain);
+    ui->pushButton_set_pol_gain_minmax->setEnabled(m_pol_auto_gain);
+    ui->doubleSpinBox_pol_expo->setDisabled(m_pol_auto_exposure);
+    ui->pushButton_pol_exposure->setDisabled(m_pol_auto_exposure);
+    ui->doubleSpinBox_pol_expo_min->setEnabled(m_pol_auto_exposure);
+    ui->doubleSpinBox_pol_expo_max->setEnabled(m_pol_auto_exposure);
+    ui->pushButton_set_pol_expo_minmax->setEnabled(m_pol_auto_exposure);
+}
+
 void MainWindow::initializeReceivers()
 {
     if(m_lidar_sensor != NULL){
@@ -258,6 +386,10 @@ void MainWindow::initializeReceivers()
         m_pointcloud_reader->setPort(m_pcd_port);
         m_pointcloud_reader->doReadPointcloud(true);
         m_pointcloud_reader->startController();
+
+        m_save_pointcloud_executor->setPathToSavePcd(ui->lineEdit_save_pointcloud_path->text());
+        m_save_pointcloud_executor->startController();
+        m_save_pointcloud_manager->startController();
     }
 
     if(m_rgb_sensor != NULL || m_allied_narrow_sensor != NULL){
@@ -268,6 +400,10 @@ void MainWindow::initializeReceivers()
         m_rgb_image_reader->setPort(m_rgb_port);
         m_rgb_image_reader->doReadImageRgb(true);
         m_rgb_image_reader->startController();
+
+        m_save_rgb_image_executor->setPathToSaveImages((m_rgb_sensor != NULL) ? ui->lineEdit_save_narrow_path->text() : ui->lineEdit_save_rgb_path->text());
+        m_save_rgb_image_manager->startController();
+        m_save_rgb_image_executor->startController();
     }
 
     if(m_allied_wide_sensor!= NULL || m_pol_sensor != NULL){
@@ -276,6 +412,10 @@ void MainWindow::initializeReceivers()
         m_rgb_pol_image_reader->setPort(m_rgbp_port);
         m_rgb_pol_image_reader->doReadImageRgb(true);
         m_rgb_pol_image_reader->startController();
+
+        m_save_polarimetric_executor->setPathToSaveImages((m_pol_sensor != NULL) ? ui->lineEdit_save_wide_path->text() : ui->lineEdit_save_pol_path->text());
+        m_save_polarimetric_manager->startController();
+        m_save_polarimetric_executor->startController();
     }
 
     if(m_thermal_sensor != NULL){
@@ -285,6 +425,10 @@ void MainWindow::initializeReceivers()
         m_thermal_image_reader->setPort(m_thermal_port);
         m_thermal_image_reader->doReadImageRgb(true);
         m_thermal_image_reader->startController();
+
+        m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
+        m_save_thermal_image_manager->startController();
+        m_save_thermal_image_executor->startController();
     }
 }
 
@@ -350,7 +494,16 @@ void MainWindow::on_pushButton_getVersion_clicked()
 
 void MainWindow::on_pushButton_initialize_clicked()
 {
-    int error = INITIALIZE();
+    registerErrorCallback(errorNotification);
+    int error = L3CAM_OK;
+
+    if(ui->lineEdit_local_address->text().isEmpty() || ui->lineEdit_device_address->text().isEmpty()){
+        error = INITIALIZE(NULL, NULL);
+    }
+    else{
+        error = INITIALIZE((char*)ui->lineEdit_local_address->text().toStdString().c_str(), (char*)ui->lineEdit_device_address->text().toStdString().c_str() );
+    }
+
     qDebug()<<"initializing response "<<error;
     addMessageToLogWindow("initializing response " + QString::number(error), (error) ? logType::error : logType::verbose);
 
@@ -440,7 +593,8 @@ void MainWindow::on_pushButton_fast_init_clicked()
 {
     //!set searching status GUI
     int error = 0;
-    error = INITIALIZE();
+    registerErrorCallback(errorNotification);
+    error = INITIALIZE(NULL, NULL);
     qDebug()<<"INITIALIZE -"<<error;
     addMessageToLogWindow("INITIALIZE - " + QString::number(error), (error) ? logType::error : logType::verbose);
 
@@ -639,7 +793,7 @@ void MainWindow::on_pushButton_get_rgb_pipeline_clicked()
 
 void MainWindow::on_pushButton_set_rgb_image_size_clicked()
 {
-    econResolutions cur_reso = reso_640_480;
+    econResolutions cur_reso = reso_1920_1080;
 
     switch (ui->comboBox_rgb_image_size->currentIndex()) {
     case 0:
@@ -872,6 +1026,12 @@ void MainWindow::on_pushButton_start_streaming_clicked()
             m_device_streaming = false;
         }
     }
+    ui->comboBox_intensity_controller_region_wide->setDisabled(m_device_streaming);
+    ui->horizontalSlider_allied_wide_auto_mode_height->setDisabled(m_device_streaming);
+    ui->horizontalSlider_allied_wide_auto_mode_width->setDisabled(m_device_streaming);
+    ui->horizontalSlider_max_buffers_count_wide->setDisabled(m_device_streaming);
+    ui->horizontalSlider_wide_black_level->setDisabled(m_device_streaming);
+    ui->horizontalSlider_sharpness_wide->setDisabled(m_device_streaming);
 }
 
 void MainWindow::on_radioButton_range3D_clicked(bool checked)
@@ -936,14 +1096,33 @@ void MainWindow::on_radioButton_fusion_mono_clicked(bool checked)
     addMessageToLogWindow("change fusion pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
 }
 
-void MainWindow::pointCloudReadyToShow(int32_t *pointcloud, uint32_t timestamp)
+void MainWindow::pointCloudReadyToShow(int32_t *pointcloud_data, uint32_t timestamp)
 {
     Q_UNUSED(timestamp)
-    if(m_device_started){
-        m_point_cloud_viewer->doShowPointCloud(pointcloud);
+
+    if(m_save_data && m_save_pointcloud){
+
+        if(m_save_pointcloud_counter > 0 || m_save_all){
+            int buff_size = ((pointcloud_data[0] * 5) + 1) * sizeof(int32_t);
+            int32_t *temp_buff = (int32_t*) malloc(buff_size);
+            memcpy(temp_buff, pointcloud_data, buff_size);
+
+            m_save_pointcloud_manager->doSavePointCloudToBin(temp_buff, pointcloud_data[0], timestamp);
+            free(temp_buff);
+
+            if(!m_save_all){
+                m_save_pointcloud_counter--;
+                checkAllFramesSaved();
+
+            }
+        }
     }
 
-    free(pointcloud);
+    if(m_device_started){
+        m_point_cloud_viewer->doShowPointCloud(pointcloud_data);
+    }
+
+    free(pointcloud_data);
 }
 
 void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint16_t width, uint8_t channels, std::vector<detectionImage> detections, uint32_t timestamp)
@@ -954,14 +1133,43 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
+            if(m_blurring_loaded && m_apply_blurring){
+                applyFaceBlurring(image_to_show);
+            }
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2RGB);
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
+            if(m_blurring_loaded && m_apply_blurring){
+                applyFaceBlurring(image_to_show);
+            }
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
 
-        drawDetections(image_to_show, detections, 30);
+        if(!detections.empty()){
+            drawDetections(image_to_show, detections, 30);
+        }
+
+        if(m_save_data && (m_save_rgb_image || m_save_narrow_image)){
+
+            if(m_save_images_rgb_counter > 0 || m_save_narrow_counter > 0 || m_save_all){
+
+                int buff_size = sizeof(uint8_t)*height*width*channels;
+                uint8_t *temp_buf = (uint8_t*)malloc(buff_size);
+
+                memcpy(temp_buf, (uint8_t*)image_to_show.data, buff_size*sizeof(uint8_t));
+
+                m_save_rgb_image_manager->doSavePointerToPng(temp_buf, width, height, channels, timestamp);
+
+                free(temp_buf);
+
+                if(!m_save_all){
+                    if(m_save_rgb_image) m_save_images_rgb_counter--;
+                    if(m_save_narrow_image) m_save_narrow_counter--;
+                    checkAllFramesSaved();
+                }
+            }
+        }
 
         cv::resize(image_to_show, image_to_show, cv::Size(600,400));
 
@@ -991,7 +1199,30 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
 
-        drawDetections(image_to_show, detections, 30);
+        if(!detections.empty()){
+            drawDetections(image_to_show, detections, 30);
+        }
+        
+        if(m_save_data && (m_save_pol_image || m_save_wide_image)){
+
+            if(m_save_pol_counter > 0 || m_save_wide_counter > 0 || m_save_all){
+                
+                int buff_size = sizeof(uint8_t)*height*width*channels;
+                uint8_t *temp_buf = (uint8_t*)malloc(buff_size);
+                memcpy(temp_buf, image_data, buff_size*sizeof(uint8_t));
+
+                m_save_polarimetric_manager->doSavePointerToPng(temp_buf, width, height, channels, timestamp);
+
+                free(temp_buf);
+
+                if(!m_save_all){
+                    if(m_save_pol_image) m_save_pol_counter--;
+                    if(m_save_wide_image) m_save_wide_counter--;
+                    checkAllFramesSaved();
+                }
+            }
+
+        }
 
         cv::resize(image_to_show, image_to_show, cv::Size(600,400));
 
@@ -1015,8 +1246,28 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
         image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
         cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
 
-        drawDetections(image_to_show, detections, 30);
+        if(m_save_data && m_save_thermal_image ){
 
+            if(m_save_thermal_counter > 0 || m_save_all){
+                int buff_size = sizeof(uint8_t)*height*width*channels;
+                uint8_t *temp_buf = (uint8_t*)malloc(buff_size);
+                memcpy(temp_buf, image_to_show.data, buff_size*sizeof(uint8_t));
+
+                m_save_thermal_image_manager->doSavePointerToPng(temp_buf, width, height, channels, timestamp);
+
+                free(temp_buf);
+
+                if(!m_save_all){
+                    m_save_thermal_counter--;
+                    checkAllFramesSaved();
+                }
+            }
+
+        }
+
+        if(detections.size() > 0){
+            drawDetections(image_to_show, detections, 30);
+        }
         cv::resize(image_to_show, image_to_show, cv::Size(600,400));
 
         QImage image = QImage((uchar*) image_to_show.data, image_to_show.cols, image_to_show.rows, image_to_show.step,  QImage::Format_RGB888);
@@ -1090,6 +1341,16 @@ void MainWindow::on_pushButton_rgb_rtsp_clicked()
     }
 }
 
+void MainWindow::on_pushButton_pol_rtsp_clicked()
+{
+    int error = L3CAM_OK;
+    error = CHANGE_RTSP_PIPELINE(m_devices[0], *m_pol_sensor, (char*)ui->lineEdit_pol_rtsp->text().toStdString().c_str());
+    if(error != L3CAM_OK){
+        qDebug()<<"Error setting pol pipeline"<<getBeamErrorDescription(error);
+        addMessageToLogWindow("Error setting pol pipeline " + QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
 void MainWindow::on_pushButton_ther_rtsp_clicked()
 {
     int error = L3CAM_OK;
@@ -1147,6 +1408,196 @@ void MainWindow::drawDetections(cv::Mat &image_to_show, std::vector<detectionIma
     }
 }
 
+
+void MainWindow::setPathToSaveData(QLineEdit *line_edit)
+{
+    QFileDialog dialog(this);
+
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setDirectory(QDir(QDir::homePath()));
+    if(dialog.exec()){
+        line_edit->setText(dialog.directory().absolutePath() + "/" );
+    }
+
+}
+
+void MainWindow::enableSaveConfiguration()
+{
+    ui->lineEdit_save_pointcloud_path->setText(m_path_to_save_pointcloud);
+    ui->lineEdit_save_pol_path->setText(m_path_to_save_pol);
+    ui->lineEdit_save_thermal_path->setText(m_path_to_save_thermal);
+    ui->lineEdit_save_rgb_path->setText(m_path_to_save_rgb);
+    ui->lineEdit_save_wide_path->setText(m_path_to_save_wide);
+    ui->lineEdit_save_narrow_path->setText(m_path_to_save_narrow);
+
+    ui->lineEdit_save_pointcloud_path->setEnabled(m_save_data);
+    ui->lineEdit_save_pol_path->setEnabled(m_save_data);
+    ui->lineEdit_save_thermal_path->setEnabled(m_save_data);
+    ui->lineEdit_save_rgb_path->setEnabled(m_save_data);
+    ui->lineEdit_save_wide_path->setEnabled(m_save_data);
+    ui->lineEdit_save_narrow_path->setEnabled(m_save_data);
+
+    ui->pushButton_save_thermal->setEnabled(m_save_data);
+    ui->pushButton_save_pol->setEnabled(m_save_data);
+    ui->pushButton_save_pointcloud->setEnabled(m_save_data);
+    ui->pushButton_save_rgb->setEnabled(m_save_data);
+    ui->pushButton_save_wide->setEnabled(m_save_data);
+    ui->pushButton_save_narrow->setEnabled(m_save_data);
+}
+
+void MainWindow::changeSaveDataSettings()
+{
+    if(m_save_thermal_image){
+        m_path_to_save_thermal = ui->lineEdit_save_thermal_path->text();
+        ui->lineEdit_save_thermal_path->setDisabled(m_save_data);
+        ui->pushButton_save_thermal->setDisabled(m_save_data);
+    }
+    if(m_save_pol_image){
+        m_path_to_save_pol = ui->lineEdit_save_pol_path->text();
+        ui->lineEdit_save_pol_path->setDisabled(m_save_data);
+        ui->pushButton_save_pol->setDisabled(m_save_data);
+    }
+    if(m_save_pointcloud){
+        m_path_to_save_pointcloud = ui->lineEdit_save_pointcloud_path->text();
+        ui->lineEdit_save_pointcloud_path->setDisabled(m_save_data);
+        ui->pushButton_save_pointcloud->setDisabled(m_save_data);
+    }
+    if(m_save_rgb_image){
+        m_path_to_save_rgb = ui->lineEdit_save_rgb_path->text();
+        ui->lineEdit_save_rgb_path->setDisabled(m_save_data);
+        ui->pushButton_save_rgb->setDisabled(m_save_data);
+    }
+    if(m_save_wide_image){
+        m_path_to_save_wide = ui->lineEdit_save_wide_path->text();
+        ui->lineEdit_save_wide_path->setDisabled(m_save_data);
+        ui->pushButton_save_wide->setDisabled(m_save_data);
+    }
+    if(m_save_narrow_image){
+        m_path_to_save_narrow = ui->lineEdit_save_narrow_path->text();
+        ui->lineEdit_save_narrow_path->setDisabled(m_save_data);
+        ui->pushButton_save_narrow->setDisabled(m_save_data);
+    }
+
+    ui->checkBox_save_thermal->setEnabled(m_thermal_sensor != NULL && !m_save_data);
+    ui->checkBox_save_pointcloud->setEnabled(m_lidar_sensor != NULL && !m_save_data);
+    ui->checkBox_save_pol->setEnabled(m_pol_sensor != NULL && !m_save_data);
+    ui->checkBox_save_rgb->setEnabled(m_rgb_sensor != NULL && !m_save_data);
+    ui->checkBox_save_wide->setEnabled(m_allied_wide_sensor != NULL && !m_save_data);
+    ui->checkBox_save_narrow->setEnabled(m_allied_narrow_sensor != NULL && !m_save_data);
+
+    ui->spinBox_save_counter->setDisabled(m_save_data);
+
+}
+
+void MainWindow::checkAllFramesSaved()
+{
+    if((m_save_images_rgb_counter == 0) && (m_save_pointcloud_counter == 0) && (m_save_thermal_counter == 0) &&
+            (m_save_pol_counter == 0) && (m_save_narrow_counter == 0) && (m_save_wide_counter == 0)){
+        on_pushButton_save_clicked();
+    }
+}
+
+void MainWindow::loadBlurringNetworks()
+{
+    try{
+        // resources are not exposed to the filesytem, thus they cannot be converted to a standard path
+        // QFile can access them so we create a temporary file to access its path
+        QTemporaryDir tempDirConfig, tempDirWeight;
+        if(tempDirConfig.isValid() && tempDirWeight.isValid()) {
+            const QString tempFileConfig = tempDirConfig.path() + "/deploy.prototxt";
+            const QString tempFileWeight = tempDirWeight.path() + "/res10_300x300_ssd_iter_140000_fp16.caffemodel";
+            if(QFile::copy(":/resources/deploy.prototxt", tempFileConfig) && QFile::copy(":/resources/res10_300x300_ssd_iter_140000_fp16.caffemodel", tempFileWeight)) {
+                m_faces_net = cv::dnn::readNetFromCaffe(tempFileConfig.toStdString(), tempFileWeight.toStdString());
+            }
+        }
+
+        m_faces_net.setPreferableBackend(cv::dnn::DNN_TARGET_CPU);
+
+        cv::Mat image = cv::Mat(300, 300, CV_8UC3, cv::Scalar(0,0,0));
+        cv::Mat inputBlob;
+        std::vector<cv::Mat> netOutput;
+
+        inputBlob = cv::dnn::blobFromImage(image, 1.0, cv::Size(300, 300), cv::Scalar(104.0, 177.0, 123.0), false, false);
+
+        m_faces_net.setInput(inputBlob);
+        m_faces_net.forward(netOutput, "detection_out");
+
+        m_blurring_loaded = true;
+        ui->checkBox_blur_faces->setEnabled(true);
+    }catch(...){
+        qDebug()<<"Error loading blurring networks";
+        addMessageToLogWindow("Error loading blurring networks", logType::warning);
+        m_blurring_loaded = false;
+    }
+}
+
+void MainWindow::applyFaceBlurring(cv::Mat &image)
+{
+    cv::Mat inputBlob;
+    cv::Scalar meanVal(104.0, 177.0, 123.0);
+    cv::Mat netOutput;
+
+    int kernelWidth = 105;
+    int kernelHeight = 105;
+    try{
+        inputBlob = cv::dnn::blobFromImage(image, 1.0, cv::Size(300, 300), meanVal, false, false);
+
+        m_faces_net.setInput(inputBlob);
+
+        netOutput = m_faces_net.forward("detection_out");
+
+        cv::Mat detectionMat(netOutput.size[2], netOutput.size[3], CV_32F, netOutput.ptr<float>());
+
+        for (int i = 0; i < detectionMat.rows; i++)
+        {
+            float confidence = detectionMat.at<float>(i, 2);
+
+            //qDebug()<<confidence;
+
+            if (confidence > 0.2)
+            {
+                int x1 = abs(static_cast<int>(detectionMat.at<float>(i, 3) * image.cols));
+                int y1 = abs(static_cast<int>(detectionMat.at<float>(i, 4) * image.rows));
+                int x2 = abs(static_cast<int>(detectionMat.at<float>(i, 5) * image.cols));
+                int y2 = abs(static_cast<int>(detectionMat.at<float>(i, 6) * image.rows));
+
+                //cv::rectangle(frameOpenCVDNN, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2, 4);
+
+                // Setup a rectangle to define your region of interest
+                cv::Rect myROI = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
+
+                //(asubirana) sometimes ROI is outside image (???) and has to be discarded
+                if(myROI.x >= image.cols || myROI.y >= image.rows){
+                    continue;
+                }
+                //(asubirana) sometimes ROI has part outside the image and has to be cropped
+                if(myROI.x + myROI.width >= image.cols){
+                    myROI.width = myROI.width - (myROI.x + myROI.width - image.cols);
+                }
+                if(myROI.y + myROI.height >= image.rows){
+                    myROI.height = myROI.height - (myROI.y + myROI.height - image.rows);
+                }
+                if(myROI.x < 0){
+                    myROI.width = myROI.width + myROI.x;
+                    myROI.x = 0;
+                }
+                if(myROI.y < 0){
+                    myROI.height = myROI.height + myROI.y;
+                    myROI.y = 0;
+                }
+
+                // Blur the image contained by the rectangle myROI
+                cv::GaussianBlur(image(myROI), image(myROI), cv::Size(kernelWidth, kernelHeight), 0);
+            }
+        }
+    }catch(...){
+        qDebug()<<"Unhandled error at MainWindow::applyFaceBlurring";
+        addMessageToLogWindow("Unhandled error at MainWindow::applyFaceBlurring", logType::error);
+    }
+
+}
+
+
 void MainWindow::updateSensorStatus(uint8_t device_status, QLabel *status_label)
 {
     QString status = "";
@@ -1192,6 +1643,34 @@ void MainWindow::initializeSystemStatus()
     updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
     updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
 
+    ui->radioButton_wide_camera->setEnabled(m_allied_wide_sensor != NULL);
+    ui->radioButton_narrow_camera->setEnabled(m_allied_narrow_sensor != NULL);
+    if(m_allied_wide_sensor == NULL && m_allied_narrow_sensor != NULL){
+        ui->radioButton_narrow_camera->click();
+    }
+
+    ui->checkBox_save_thermal->setEnabled(m_thermal_sensor != NULL);
+    ui->checkBox_save_pointcloud->setEnabled(m_lidar_sensor != NULL);
+    ui->checkBox_save_pol->setEnabled(m_pol_sensor != NULL);
+    ui->checkBox_save_rgb->setEnabled(m_rgb_sensor != NULL);
+    ui->checkBox_save_wide->setEnabled(m_allied_wide_sensor != NULL);
+    ui->checkBox_save_narrow->setEnabled(m_allied_narrow_sensor != NULL);
+
+    if(m_allied_wide_sensor == NULL && m_allied_narrow_sensor == NULL){
+        ui->tab_Allied->setDisabled(true);
+    }
+    if(m_rgb_sensor == NULL){
+        ui->groupBoxEconRGBSettings->setDisabled(true);
+    }
+    if(m_thermal_sensor == NULL){
+        ui->groupBoxThermalSettings->setDisabled(true);
+    }
+    if(m_pol_sensor == NULL){
+        ui->groupBox_pol_settings->setDisabled(true);
+    }
+    if(m_lidar_sensor == NULL){
+        ui->tab_LiDAR->setDisabled(true);
+    }
 }
 
 void MainWindow::addMessageToLogWindow(QString message, uint8_t level)
@@ -1211,17 +1690,37 @@ void MainWindow::addMessageToLogWindow(QString message, uint8_t level)
     }
 
     QString now = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss:zzz");
-    ui->listWidget_log_window->addItem(QString("[%1] %2").arg(now).arg(message));
+    ui->listWidget_log_window->addItem(QString("[%1] %2").arg(now, message));
     int items = ui->listWidget_log_window->count();
     ui->listWidget_log_window->item(items-1)->setForeground(color);
     ui->listWidget_log_window->scrollToBottom();
 }
 
-
-void MainWindow::valueChangedCode(int value)
+void MainWindow::errorNotification(const int *error)
 {
-    qDebug()<<"SLOT POR CODIGO"<<value;
-    addMessageToLogWindow("SLOT POR CODIGO " + QString::number(value), logType::error);
+    qDebug() << "Error notification received:" << getBeamErrorDescription(*error) << '(' << *error << ')';
+
+    if(mainWindowObj == nullptr) return;
+
+    QMetaObject::invokeMethod(mainWindowObj, "updateSensorError", Qt::QueuedConnection, Q_ARG(int32_t, *error));
+}
+
+void MainWindow::updateSensorError(int32_t error)
+{
+    QString msg = "Error notification received: " + QString(getBeamErrorDescription(error)) + " (" + QString().number(error) + ")";
+    addMessageToLogWindow(msg, logType::error);
+
+    switch(error)
+    {
+    case ERROR_LIDAR_TIMED_OUT:
+        m_lidar_status = deviceStatus::error_s;
+        updateSensorStatus(m_lidar_status, ui->label_lidar_status_value);
+        break;
+    case ERROR_THERMAL_CAMERA_TIMEOUT:
+        m_thermal_status = deviceStatus::error_s;
+        updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
+        break;
+    }
 }
 
 void MainWindow::on_checkBox_show_axis_clicked(bool checked)
@@ -1305,8 +1804,11 @@ void MainWindow::on_checkBox_allied_wide_exposure_clicked(bool checked)
         error = ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], *m_allied_narrow_sensor,checked);
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
+
     if(!error){
         ui->horizontalSlider_allied_wide_exposure->setDisabled(checked);
 
@@ -1349,9 +1851,10 @@ void MainWindow::on_horizontalSlider_allied_wide_exposure_sliderReleased()
         error = CHANGE_ALLIED_CAMERA_EXPOSURE_TIME_US(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_allied_wide_exposure->value());
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
-
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 }
 
 void MainWindow::on_horizontalSlider_allied_wide_min_exposure_valueChanged(int value)
@@ -1369,8 +1872,10 @@ void MainWindow::on_horizontalSlider_allied_wide_min_exposure_sliderReleased()
         error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_allied_wide_min_exposure->value(), (float)ui->horizontalSlider_allied_wide_max_exposure->value());
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1384,8 +1889,10 @@ void MainWindow::on_horizontalSlider_allied_wide_max_exposure_sliderReleased()
         error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_allied_wide_min_exposure->value(), (float)ui->horizontalSlider_allied_wide_max_exposure->value());
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1404,8 +1911,10 @@ void MainWindow::on_checkBox_allied_wide_gain_clicked(bool checked)
         error = ENABLE_ALLIED_CAMERA_AUTO_GAIN(m_devices[0], *m_allied_narrow_sensor, checked);
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
     if(!error){
         ui->horizontalSlider_gain_wide->setDisabled(checked);
 
@@ -1431,8 +1940,10 @@ void MainWindow::on_horizontalSlider_gain_wide_sliderReleased()
         error = CHANGE_ALLIED_CAMERA_GAIN(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_gain_wide->value());
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1446,8 +1957,10 @@ void MainWindow::on_horizontalSlider_allied_wide_min_gain_sliderReleased()
         error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_allied_wide_min_gain->value(), (float)ui->horizontalSlider_allied_wide_max_gain->value());
     }
 
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 }
 
 void MainWindow::on_horizontalSlider_allied_wide_min_gain_valueChanged(int value)
@@ -1468,8 +1981,11 @@ void MainWindow::on_horizontalSlider_allied_wide_max_gain_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_allied_wide_min_gain->value(), (float)ui->horizontalSlider_allied_wide_max_gain->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1482,8 +1998,11 @@ void MainWindow::on_horizontalSlider_intensity_controller_target_wide_sliderRele
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_intensity_controller_target_wide->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1509,8 +2028,11 @@ void MainWindow::on_comboBox_intensity_controller_region_wide_currentIndexChange
             error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(m_devices[0], *m_allied_narrow_sensor, allied_controller_region_full_image);
         }
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1527,8 +2049,11 @@ void MainWindow::on_horizontalSlider_allied_wide_auto_mode_height_sliderReleased
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *m_allied_narrow_sensor, (int)ui->horizontalSlider_allied_wide_auto_mode_height->value(), (int)ui->horizontalSlider_allied_wide_auto_mode_width->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1546,8 +2071,11 @@ void MainWindow::on_horizontalSlider_allied_wide_auto_mode_width_sliderReleased(
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *m_allied_narrow_sensor, (int)ui->horizontalSlider_allied_wide_auto_mode_height->value(), (int)ui->horizontalSlider_allied_wide_auto_mode_width->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1564,8 +2092,11 @@ void MainWindow::on_horizontalSlider_max_buffers_count_wide_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(m_devices[0], *m_allied_narrow_sensor, (int)ui->horizontalSlider_max_buffers_count_wide->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1577,8 +2108,11 @@ void MainWindow::on_checkBox_allied_wide_white_bal_clicked(bool checked)
     }else if(m_current_allied_camera == narrow_camera){
         error = ENABLE_ALLIED_CAMERA_AUTO_WHITE_BALANCE(m_devices[0], *m_allied_narrow_sensor, checked);
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
     if(!error){
         ui->horizontalSlider_white_balance_auto_tol_allied_wide->setEnabled(checked);
@@ -1598,8 +2132,11 @@ void MainWindow::on_horizontalSlider_white_balance_auto_tol_allied_wide_sliderRe
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_white_balance_auto_tol_allied_wide->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1617,8 +2154,11 @@ void MainWindow::on_horizontalSlider_white_balance_auto_rate_allied_wide_sliderR
     }else if(m_current_allied_camera == narrow_camera){
         error =CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_white_balance_auto_rate_allied_wide->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1644,8 +2184,11 @@ void MainWindow::on_comboBox_white_balance_ratio_selector_currentIndexChanged(in
             error =  CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(m_devices[0], *m_allied_narrow_sensor, allied_balance_ratio_selector_blue);
         }
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1658,8 +2201,11 @@ void MainWindow::on_horizontalSlider_white_balance_ratio_allied_wide_sliderRelea
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_white_balance_ratio_allied_wide->value()/10.0);
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1676,8 +2222,11 @@ void MainWindow::on_horizontalSlider_wide_black_level_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_BLACK_LEVEL(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_wide_black_level->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1694,8 +2243,11 @@ void MainWindow::on_horizontalSlider_gamma_wide_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_GAMMA(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_gamma_wide->value()/10.0);
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1712,8 +2264,11 @@ void MainWindow::on_horizontalSlider_saturation_wide_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_SATURATION(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_saturation_wide->value()/10.0);
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 }
 
 void MainWindow::on_horizontalSlider_saturation_wide_valueChanged(int value)
@@ -1730,8 +2285,11 @@ void MainWindow::on_horizontalSlider_sharpness_wide_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_SHARPNESS(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_sharpness_wide->value()/10.0);
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1749,8 +2307,11 @@ void MainWindow::on_horizontalSlider_hue_wide_sliderReleased()
     }else if(m_current_allied_camera == narrow_camera){
         error = CHANGE_ALLIED_CAMERA_HUE(m_devices[0], *m_allied_narrow_sensor, (float)ui->horizontalSlider_hue_wide->value());
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1775,8 +2336,11 @@ void MainWindow::on_comboBox_intensity_auto_precedence_currentIndexChanged(int i
             error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(m_devices[0], *m_allied_narrow_sensor, allied_auto_precedence_minimize_blur);
         }
     }
-    qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
-    addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+    if(error != L3CAM_OK){
+        qDebug()<<__func__<<"Response"<<error<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(__func__) + " Response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+    }
 
 }
 
@@ -1889,7 +2453,6 @@ void MainWindow::on_actionAbout_triggered()
     QMessageBox::about(this, "About", msg);
 }
 
-
 void MainWindow::on_comboBox_background_currentIndexChanged(int index)
 {
     switch (index) {
@@ -1907,3 +2470,630 @@ void MainWindow::on_comboBox_background_currentIndexChanged(int index)
     }
 }
 
+
+void MainWindow::on_checkBox_save_pointcloud_clicked(bool checked)
+{
+    m_save_pointcloud = checked;
+    ui->lineEdit_save_pointcloud_path->setEnabled(m_save_pointcloud);
+    ui->pushButton_save_pointcloud->setEnabled(m_save_pointcloud);
+}
+
+
+void MainWindow::on_checkBox_save_thermal_clicked(bool checked)
+{
+    m_save_thermal_image = checked;
+    ui->lineEdit_save_thermal_path->setEnabled(m_save_thermal_image);
+    ui->pushButton_save_thermal->setEnabled(m_save_thermal_image);
+}
+
+
+void MainWindow::on_checkBox_save_rgb_clicked(bool checked)
+{
+    m_save_rgb_image = checked;
+    ui->lineEdit_save_rgb_path->setEnabled(checked);
+    ui->pushButton_save_rgb->setEnabled(checked);
+}
+
+
+void MainWindow::on_checkBox_save_pol_clicked(bool checked)
+{
+    m_save_pol_image = checked;
+    ui->lineEdit_save_pol_path->setEnabled(m_save_pol_image);
+    ui->pushButton_save_pol->setEnabled(m_save_pol_image);
+}
+
+
+void MainWindow::on_checkBox_save_wide_clicked(bool checked)
+{
+    m_save_wide_image = checked;
+    ui->lineEdit_save_wide_path->setEnabled(m_save_wide_image);
+    ui->pushButton_save_wide->setEnabled(m_save_wide_image);
+}
+
+
+void MainWindow::on_checkBox_save_narrow_clicked(bool checked)
+{
+    m_save_narrow_image = checked;
+    ui->lineEdit_save_narrow_path->setEnabled(m_save_narrow_image);
+    ui->pushButton_save_narrow->setEnabled(m_save_narrow_image);
+}
+
+
+void MainWindow::on_pushButton_save_pointcloud_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_pointcloud_path);
+    m_save_pointcloud_executor->setPathToSavePcd(ui->lineEdit_save_pointcloud_path->text());
+}
+
+
+void MainWindow::on_pushButton_save_thermal_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_thermal_path);
+    m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
+}
+
+
+void MainWindow::on_pushButton_save_rgb_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_rgb_path);
+    m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_rgb_path->text());
+}
+
+
+void MainWindow::on_pushButton_save_pol_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_pol_path);
+    m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_pol_path->text());
+}
+
+
+void MainWindow::on_pushButton_save_wide_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_wide_path);
+    m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_wide_path->text());
+}
+
+
+void MainWindow::on_pushButton_save_narrow_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_narrow_path);
+    m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_narrow_path->text());
+}
+
+
+void MainWindow::thermalSaveExecutorIsAvailable(bool available)
+{
+    if(m_save_data && m_save_thermal_image){
+        m_save_thermal_image_manager->setExecutorAvailable(available);
+    }
+}
+
+void MainWindow::rgbSaveExecutorIsAvailable(bool available)
+{
+    if(m_save_data && (m_save_rgb_image || m_save_narrow_image)){
+        m_save_rgb_image_manager->setExecutorAvailable(available);
+    }
+}
+
+void MainWindow::pointcloudSaveExecutorIsAvailable(bool available)
+{
+    if(m_save_data && m_save_pointcloud){
+        m_save_pointcloud_manager->setExecutorAvailable(available);
+    }
+}
+
+void MainWindow::polSaveExecutorIsAvailable(bool available)
+{
+    if(m_save_data && (m_save_pol_image || m_save_wide_image)) {
+        m_save_polarimetric_manager->setExecutorAvailable(available);
+    }
+}
+
+
+void MainWindow::thermalImageToSaveReceived(imageData data)
+{
+    QString file_name = QString("%1").arg(data.timestamp);
+    m_save_thermal_image_executor->doSavePointerToPng(data.image_buffer, data.image_width, data.image_height, data.image_channels, file_name);
+    free(data.image_buffer);
+}
+
+void MainWindow::rgbImageToSaveReceived(imageData data)
+{
+    QString file_name = QString("%1").arg(data.timestamp);
+
+    cv::Mat image = cv::Mat(data.image_width, data.image_height, CV_8UC3, data.image_buffer );
+
+    m_save_rgb_image_executor->doSavePointerToPng(image.data, data.image_width, data.image_height, data.image_channels, file_name);
+    //m_save_rgb_image_executor->doSavePointerToPng(data.image_buffer, data.image_width, data.image_height, data.image_channels, file_name);
+
+    free(data.image_buffer);
+}
+
+void MainWindow::pointcloudToSaveReceived(pointcloudData data)
+{
+    QString file_name = QString("%1").arg(data.timestamp);
+    m_save_pointcloud_executor->doSaveBinaryData(data.pointcloud_buffer, file_name);
+
+    free(data.pointcloud_buffer);
+}
+
+void MainWindow::polImageToSaveReceived(imageData data)
+{
+    QString file_name = QString("%1").arg(data.timestamp);
+    m_save_polarimetric_executor->doSavePointerToPng(data.image_buffer, data.image_width, data.image_height, data.image_channels, file_name);
+    free(data.image_buffer);
+}
+
+void MainWindow::on_checkBox_blur_faces_clicked(bool checked)
+{
+    m_apply_blurring = checked;
+}
+
+
+void MainWindow::on_pushButton_save_clicked()
+{
+    if(!m_save_rgb_image && !m_save_pointcloud && !m_save_thermal_image &&
+            !m_save_pol_image && !m_save_wide_image && !m_save_narrow_image)
+    {
+        m_save_data = false;
+        return;
+    }
+
+    m_save_data = !m_save_data;
+
+    if(ui->checkBox_save_pointcloud->isChecked()){
+        m_save_pointcloud_executor->setPathToSavePcd(ui->lineEdit_save_pointcloud_path->text());
+    }
+    if(ui->checkBox_save_thermal->isChecked()){
+        m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
+    }
+    if(ui->checkBox_save_rgb->isChecked()){
+        m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_rgb_path->text());
+    }
+    if(ui->checkBox_save_pol->isChecked()){
+        m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_pol_path->text());
+    }
+    if(ui->checkBox_save_wide->isChecked()){
+        m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_wide_path->text());
+    }
+    if(ui->checkBox_save_narrow->isChecked()){
+        m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_narrow_path->text());
+    }
+
+    if(m_save_data){
+
+        m_save_images_counter = ui->spinBox_save_counter->value();
+
+        m_save_images_rgb_counter = (m_save_rgb_image ? m_save_images_counter : 0);
+        m_save_pointcloud_counter = (m_save_pointcloud ? m_save_images_counter : 0);
+        m_save_thermal_counter = (m_save_thermal_image ? m_save_images_counter : 0);
+        m_save_pol_counter = (m_save_pol_image ? m_save_images_counter : 0);
+        m_save_wide_counter = (m_save_wide_image ? m_save_images_counter : 0);
+        m_save_narrow_counter = (m_save_narrow_image ? m_save_images_counter : 0);
+
+        if(m_save_images_counter < 0){
+            m_save_all = true;
+        }
+
+    }
+
+    changeSaveDataSettings();
+
+    m_save_data ? (ui->pushButton_save->setStyleSheet(m_red_button_style)) : (ui->pushButton_save->setStyleSheet(m_green_button_style));
+
+    if(!m_save_data){
+        m_save_all = false;
+    }
+}
+
+
+void MainWindow::on_horizontalSlider_pol_bri_sliderReleased()
+{
+    int error = CHANGE_POLARIMETRIC_CAMERA_BRIGHTNESS(m_devices[0], (uint32_t)ui->horizontalSlider_pol_bri->value());
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_pushButton_pol_black_level_clicked()
+{
+    int error = CHANGE_POLARIMETRIC_CAMERA_BLACK_LEVEL(m_devices[0], ui->doubleSpinBox_black_level->value());
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_horizontalSlider_pol_gain_sliderReleased()
+{
+    int error = CHANGE_POLARIMETRIC_CAMERA_GAIN(m_devices[0], ui->horizontalSlider_pol_gain->value());
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_checkBox_pol_gain_clicked(bool checked)
+{
+    int error = ENABLE_POLARIMETRIC_CAMERA_AUTO_GAIN(m_devices[0], checked);
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+        ui->checkBox_pol_gain->setChecked(!checked);
+    }
+    else {
+        ui->horizontalSlider_pol_gain->setDisabled(checked);
+        ui->doubleSpinBox_pol_gain_min->setEnabled(checked);
+        ui->doubleSpinBox_pol_gain_max->setEnabled(checked);
+        ui->pushButton_set_pol_gain_minmax->setEnabled(checked);
+    }
+}
+
+
+void MainWindow::on_pushButton_set_pol_gain_minmax_clicked()
+{
+    int error = CHANGE_POLARIMETRIC_CAMERA_AUTO_GAIN_RANGE(m_devices[0], ui->doubleSpinBox_pol_gain_min->value(), ui->doubleSpinBox_pol_gain_max->value());
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_checkBox_pol_exposure_clicked(bool checked)
+{
+    int error = ENABLE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], checked);
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+        ui->checkBox_pol_exposure->setChecked(!checked);
+    }
+    else {
+        ui->doubleSpinBox_pol_expo->setDisabled(checked);
+        ui->pushButton_pol_exposure->setDisabled(checked);
+        ui->doubleSpinBox_pol_expo_min->setEnabled(checked);
+        ui->doubleSpinBox_pol_expo_max->setEnabled(checked);
+        ui->pushButton_set_pol_expo_minmax->setEnabled(checked);
+    }
+}
+
+
+void MainWindow::on_pushButton_pol_exposure_clicked()
+{
+    int error = CHANGE_POLARIMETRIC_CAMERA_EXPOSURE_TIME(m_devices[0], ui->doubleSpinBox_pol_expo->value());
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_pushButton_set_pol_expo_minmax_clicked()
+{
+    int error = CHANGE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], ui->doubleSpinBox_pol_expo_min->value(), ui->doubleSpinBox_pol_expo_max->value());
+    if(error != L3CAM_OK){
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_horizontalSlider_pol_bri_valueChanged(int value)
+{
+    ui->label_pol_bri_val->setText(QString("%1").arg(value));
+}
+
+
+void MainWindow::on_horizontalSlider_pol_gain_valueChanged(int value)
+{
+    ui->label_pol_gain_value->setText(QString("%1").arg(value));
+}
+
+
+void MainWindow::on_pushButton_restore_pol_default_clicked()
+{
+    initializePolDefault();
+
+    int error = SET_POLARIMETRIC_CAMERA_DEFAULT_SETTINGS(m_devices[0]);
+    if(error) {
+        qDebug()<<getBeamErrorDescription(error);
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+
+void MainWindow::on_pushButton_set_pol_protocol_clicked()
+{
+    streamingProtocols protocol;
+    switch(ui->comboBox_pol_protocol->currentIndex()){
+    case 0:
+        protocol = protocol_raw_udp;
+        break;
+    case 1:
+        protocol = protocol_gstreamer;
+        break;
+    default:
+        protocol = protocol_raw_udp;
+        break;
+    }
+
+    if(m_pol_sensor != NULL){
+        m_pol_sensor->protocol = protocol;
+        CHANGE_STREAMING_PROTOCOL(m_devices[0], m_pol_sensor);
+    }
+}
+
+
+void MainWindow::on_pushButton_get_pol_pipeline_clicked()
+{
+    char *pipeline;
+    GET_RTSP_PIPELINE(m_devices[0], *m_pol_sensor, &pipeline);
+    QString string_pipeline = QString("%1").arg(pipeline);
+
+    ui->lineEdit_pol_rtsp->setText(string_pipeline);
+}
+
+
+void MainWindow::on_pushButton_get_curr_params_clicked()
+{
+    //! Deshabilitar la pestaña de las allied mientras se reciben los parametros
+    ui->tab_Allied->setEnabled(false);
+
+    //qDebug() << "\n----- CURRENT PARAMETERS -----";
+
+    int error = L3CAM_OK;
+    sensor *allied_id = ui->radioButton_wide_camera->isChecked() ? m_allied_wide_sensor : m_allied_narrow_sensor;
+
+    float black_level = -1.0;
+    error = GET_ALLIED_CAMERA_BLACK_LEVEL(m_devices[0], *allied_id, &black_level);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Black Level:" << black_level;
+        ui->horizontalSlider_wide_black_level->setValue(black_level);
+    }
+
+    bool auto_exposure_enabled = false;
+    error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], *allied_id, &auto_exposure_enabled);
+    if(error){
+        qDebug()<<"Error"<<error<<"-"<<getBeamErrorDescription(error);
+    }else{
+        ui->checkBox_allied_wide_exposure->setChecked(auto_exposure_enabled);
+
+        ui->horizontalSlider_allied_wide_exposure->setDisabled(auto_exposure_enabled);
+
+        ui->horizontalSlider_allied_wide_max_exposure->setEnabled(auto_exposure_enabled);
+        ui->horizontalSlider_allied_wide_min_exposure->setEnabled(auto_exposure_enabled);
+    }
+
+    float exposure_time = -1.0;
+    error = GET_ALLIED_CAMERA_EXPOSURE_TIME_US(m_devices[0], *allied_id, &exposure_time);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Exposure Time:" << exposure_time;
+        ui->horizontalSlider_allied_wide_exposure->setValue(exposure_time);
+    }
+
+    float exposure_min = -1.0;
+    float exposure_max = -1.0;
+    error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *allied_id, &exposure_min, &exposure_max);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Auto Exposure Time Range:" << exposure_min << ',' << exposure_max;
+        ui->horizontalSlider_allied_wide_min_exposure->setValue(exposure_min);
+        ui->horizontalSlider_allied_wide_max_exposure->setValue(exposure_max);
+    }
+
+    float gain = -1.0;
+    error = GET_ALLIED_CAMERA_GAIN(m_devices[0], *allied_id, &gain);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Gain:" << gain;
+        ui->horizontalSlider_gain_wide->setValue(gain);
+    }
+
+    bool auto_gain_enabled = false;
+    error = GET_ALLIED_CAMERA_AUTO_GAIN(m_devices[0], *allied_id, &auto_gain_enabled);
+    if(error){
+        qDebug()<<"Error"<<error<<"-"<<getBeamErrorDescription(error);
+    }else{
+        ui->checkBox_allied_wide_gain->setChecked(auto_gain_enabled);
+
+        ui->horizontalSlider_gain_wide->setDisabled(auto_gain_enabled);
+
+        //!habilitar el rango del autoexposure time
+        ui->horizontalSlider_allied_wide_max_gain->setEnabled(auto_gain_enabled);
+        ui->horizontalSlider_allied_wide_min_gain->setEnabled(auto_gain_enabled);
+    }
+
+    float gain_min = -1.0;
+    float gain_max = -1.0;
+    error = GET_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *allied_id, &gain_min, &gain_max);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Auto Gain Range:" << gain_min << ',' << gain_max;
+        ui->horizontalSlider_allied_wide_min_gain->setValue(gain_min);
+        ui->horizontalSlider_allied_wide_max_gain->setValue(gain_max);
+    }
+
+    float gamma = -1.0;
+    error = GET_ALLIED_CAMERA_GAMMA(m_devices[0], *allied_id, &gamma);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Gamma:" << gamma;
+        ui->horizontalSlider_gamma_wide->setValue(gamma);
+    }
+
+    float saturation = -1.0;
+    error = GET_ALLIED_CAMERA_SATURATION(m_devices[0], *allied_id, &saturation);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Saturation:" << saturation;
+        ui->horizontalSlider_saturation_wide->setValue(saturation);
+    }
+
+    int sharpness = -1;
+    error = GET_ALLIED_CAMERA_SHARPNESS(m_devices[0], *allied_id, &sharpness);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Sharpness:" << sharpness;
+        ui->horizontalSlider_sharpness_wide->setValue(sharpness);
+    }
+
+    float hue = -1.0;
+    error = GET_ALLIED_CAMERA_HUE(m_devices[0], *allied_id, &hue);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Hue:" << hue;
+        ui->horizontalSlider_hue_wide->setValue(hue);
+    }
+
+    int iap_mode = -1;
+    error = GET_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(m_devices[0], *allied_id, &iap_mode);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Intensity Auto Precedence:" << iap_mode;
+        ui->comboBox_intensity_auto_precedence->setCurrentIndex(iap_mode);
+    }
+
+    int ratio_selector = -1;
+    error = GET_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(m_devices[0], *allied_id, &ratio_selector);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Ratio Selector:" << ratio_selector;
+        ui->comboBox_white_balance_ratio_selector->setCurrentIndex(ratio_selector);
+    }
+
+    float balance_ratio = -1.0;
+    error = GET_ALLIED_CAMERA_BALANCE_RATIO(m_devices[0], *allied_id, &balance_ratio);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Balance Ratio:" << balance_ratio;
+        ui->horizontalSlider_white_balance_ratio_allied_wide->setValue(balance_ratio);
+    }
+
+    bool auto_white_balance_enabled = false;
+    error = GET_ALLIED_CAMERA_AUTO_WHITE_BALANCE(m_devices[0], *allied_id, &auto_white_balance_enabled);
+    if(error){
+        qDebug()<<"Error"<<error<<"-"<<getBeamErrorDescription(error);
+    }else{
+        ui->checkBox_allied_wide_white_bal->setChecked(auto_white_balance_enabled);
+
+        ui->horizontalSlider_white_balance_auto_tol_allied_wide->setEnabled(auto_white_balance_enabled);
+        ui->horizontalSlider_white_balance_auto_rate_allied_wide->setEnabled(auto_white_balance_enabled);
+
+        ui->horizontalSlider_white_balance_ratio_allied_wide->setDisabled(auto_white_balance_enabled);
+        ui->comboBox_white_balance_ratio_selector->setDisabled(auto_white_balance_enabled);
+    }
+
+    float balance_white_auto_rate = -1.0;
+    error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(m_devices[0], *allied_id, &balance_white_auto_rate);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Balance White Auto Rate:" << balance_white_auto_rate;
+        ui->horizontalSlider_white_balance_auto_rate_allied_wide->setValue(balance_white_auto_rate);
+    }
+
+    float balance_white_auto_tolerance = -1.0;
+    error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(m_devices[0], *allied_id, &balance_white_auto_tolerance);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Balance White Auto Tolerance:" << balance_white_auto_tolerance;
+        ui->horizontalSlider_white_balance_auto_tol_allied_wide->setValue(balance_white_auto_tolerance);
+    }
+
+    int height = -1;
+    int width = -1;
+    error = GET_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *allied_id, &height, &width);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Auto Mode Region:" << height << ',' << width;
+        ui->horizontalSlider_allied_wide_auto_mode_height->setValue(height);
+        ui->horizontalSlider_allied_wide_auto_mode_width->setValue(width);
+    }
+
+    int icr_mode = -1;
+    error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(m_devices[0], *allied_id, &icr_mode);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Intensity Controller Region:" << icr_mode;
+        ui->comboBox_intensity_controller_region_wide->setCurrentIndex(icr_mode);
+    }
+
+    float intensity_controller_target = -1.0;
+    error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(m_devices[0], *allied_id, &intensity_controller_target);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Intensity Controller Target:" << intensity_controller_target;
+        ui->horizontalSlider_intensity_controller_target_wide->setValue(intensity_controller_target);
+    }
+
+    int max_driver_buffers_count = -1;
+    error = GET_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(m_devices[0], *allied_id, &max_driver_buffers_count);
+    if(error){
+        qDebug() << getBeamErrorDescription(error) << '(' << error << ')';
+    }else{
+        //qDebug() << "Max Briver Buffers Count:" << max_driver_buffers_count;
+        ui->horizontalSlider_max_buffers_count_wide->setValue(max_driver_buffers_count);
+    }
+
+    //! Habilitar la pestaña de las allied cuando se ha acabdo
+    ui->tab_Allied->setEnabled(true);
+
+}
+
+void MainWindow::on_checkBox_auto_bias_clicked(bool checked)
+{
+    ENABLE_AUTO_BIAS(m_devices[0], checked);
+}
+
+void MainWindow::on_horizontalSlider_bias_valueChanged(int value)
+{
+    ui->label_bias_value->setText(QString("%1 mV").arg(value));
+
+}
+
+void MainWindow::on_horizontalSlider_bias_left_valueChanged(int value)
+{
+    ui->label_bias_value_left->setText(QString("%1 mV").arg(value));
+}
+
+void MainWindow::on_horizontalSlider_bias_sliderReleased()
+{
+    int bias = ui->horizontalSlider_bias->value();
+    CHANGE_BIAS_VALUE(m_devices[0], indexTdc::right, bias);
+
+}
+
+void MainWindow::on_horizontalSlider_bias_left_sliderReleased()
+{
+
+    int bias = ui->horizontalSlider_bias_left->value();
+    CHANGE_BIAS_VALUE(m_devices[0], indexTdc::left, bias);
+
+}
+
+void MainWindow::pointSelectedNotification(QString data)
+{
+    addMessageToLogWindow(data);
+}
