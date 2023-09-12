@@ -11,7 +11,11 @@
 #include <QCoreApplication>
 #include <QTimer>
 
+#ifdef _WIN32
+
+#else
 #include <unistd.h>
+#endif
 
 #include "pointCloudSaveDataExecutorMessages.h"
 

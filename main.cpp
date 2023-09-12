@@ -31,7 +31,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    qApp->setApplicationVersion("1.0.2");
+    qApp->setApplicationVersion("1.1.2");
 
     MainWindow w;
     w.show();

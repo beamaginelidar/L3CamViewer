@@ -1,11 +1,5 @@
-//==============================================================================
-//
-// Title:		libL3Cam
-// Purpose:		Interface of the library for communications with L3CAM devices
-//
-// Created on:	22/11/2021 at 12:01:11 by Beamagine.
 /*  Copyright (c) 2023, Beamagine
- 
+
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without modification,
@@ -30,6 +24,14 @@
     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+//==============================================================================
+//
+// Title:		libL3Cam
+// Purpose:		Interface of the library for communications with L3CAM devices
+//
+// Created on:	22/11/2021 at 12:01:11 by Beamagine.
+// Copyright:	. All Rights Reserved.
 //
 //==============================================================================
 
@@ -37,14 +39,11 @@
 #define __libL3Cam_H__
 
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
 
 //==============================================================================
 // Include files
-#ifdef _WIN32
-#include "cvidef.h"
-#endif
 #include "beamagine.h"
 #include "beamErrors.h"
 

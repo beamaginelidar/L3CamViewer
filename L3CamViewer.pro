@@ -3,9 +3,11 @@
 # Project created by QtCreator 2022-01-02T18:55:29
 #
 #-------------------------------------------------
-CONFIG += c++14
+unix{
 QMAKE_CXXFLAGS += -std=gnu++14
+}
 
+CONFIG += c++14
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -64,8 +66,13 @@ INCLUDEPATH += \
         BeamagineCore/saveDataManager/ \
         BeamagineCore/
 
-INCLUDEPATH += /usr/local/include/opencv4/ \
 
+# TODO: Modify INCLUDEPATH to match your environment
+
+unix {
+
+#OPENCV
+INCLUDEPATH += /usr/local/include/opencv4/ \
 
 LIBS += -L$$PWD/libs/opencv4/ \
     -lopencv_core \
@@ -74,8 +81,7 @@ LIBS += -L$$PWD/libs/opencv4/ \
     -lopencv_imgcodecs \
     -lopencv_dnn
 
-
-# TODO: Modify INCLUDEPATH to match your environment
+#PCL
 INCLUDEPATH += $(HOME)/pcl-1.9.0/libs/include/pcl-1.9 \
                /usr/include/eigen3/ \
                /usr/include/vtk-7.1/
@@ -97,6 +103,81 @@ LIBS += -lboost_system \
     -lvtkCommonExecutionModel-7.1 \
     -lvtkRenderingFreeType-7.1
 
+#LibL3cam
+LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
+
+INCLUDEPATH += $$PWD/libs/libL3Cam
+DEPENDPATH += $$PWD/libs/libL3Cam
+
+PRE_TARGETDEPS += $$PWD/libs/libL3Cam/libL3Cam.a
+}
+
+win32{
+#OPENCV
+INCLUDEPATH += 'D:/OpenCV/opencv/build/include/'
+
+LIBS += -L"$$PWD/libs/opencv4/" -lopencv_world440
+
+#PCL
+INCLUDEPATH += 'C:/Program Files/PCL 1.9.1/include/pcl-1.9/' \
+               'C:/Program Files/PCL 1.9.1/3rdParty/Eigen/eigen3' \
+               'C:/Program Files/PCL 1.9.1/3rdParty/VTK/include/vtk-8.1' \
+               'C:/Program Files/PCL 1.9.1/3rdParty/Boost/include/boost-1_68' \
+               'C:/Program Files/PCL 1.9.1/3rdParty/FLANN/include/'
+
+LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/boost/" -llibboost_system-vc141-mt-x64-1_68 \
+        -llibboost_filesystem-vc141-mt-x64-1_68 \
+        -llibboost_thread-vc141-mt-x64-1_68 \
+        -llibboost_date_time-vc141-mt-x64-1_68 \
+        -llibboost_iostreams-vc141-mt-x64-1_68 \
+        -llibboost_serialization-vc141-mt-x64-1_68 \
+        -llibboost_chrono-vc141-mt-x64-1_68 \
+        -llibboost_atomic-vc141-mt-x64-1_68 \
+        -llibboost_regex-vc141-mt-x64-1_68
+
+LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/qhull/" -lqhullstatic
+
+LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/openni/" -lOpenNI2
+
+LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/flann/" -lflann_cpp_s
+
+LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/vtk/" -lvtkCommonCore-8.1 \
+        -lvtkRenderingCore-8.1 \
+        -lvtkCommonDataModel-8.1 \
+        -lvtkCommonMath-8.1 \
+        -lvtkRenderingLOD-8.1 \
+        -lvtkCommonExecutionModel-8.1 \
+        -lvtkRenderingFreeType-8.1 \
+        -lvtksys-8.1 \
+        -lvtkCommonTransforms-8.1 \
+        -lvtkCommonColor-8.1 \
+        -lvtkCommonSystem-8.1 \
+        -lvtkCommonMisc-8.1
+
+LIBS += -L"$$PWD/libs/pcl-1.9.1/pcl-1.9/" -lpcl_visualization_release \
+        -lpcl_common_release
+
+
+#LibL3cam
+LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
+
+INCLUDEPATH += $$PWD/libs/libL3Cam
+DEPENDPATH += $$PWD/libs/libL3Cam
+
+PRE_TARGETDEPS += $$PWD/libs/libL3Cam/L3Cam.lib
+
+LIBS += -L$$PWD/libs/libL3Cam/win_dependencies/ -liphlpapi
+DEPENDPATH += $$PWD/libs/libL3Cam/win_dependencies
+PRE_TARGETDEPS += $$PWD/libs/libL3Cam/win_dependencies/iphlpapi.lib
+
+
+LIBS += -lopengl32 \
+        -lglu32 \
+        -lwsock32 \
+        -lws2_32 \
+        -luser32 \
+        -lgdi32
+}
 
 qmx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = $(HOME)/l3cam
@@ -105,9 +186,3 @@ else: unix:!android: target.path = $(HOME)/l3cam
 RESOURCES += \
     resources.qrc
 
-unix:!macx: LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
-
-INCLUDEPATH += $$PWD/libs/libL3Cam
-DEPENDPATH += $$PWD/libs/libL3Cam
-
-unix:!macx: PRE_TARGETDEPS += $$PWD/libs/libL3Cam/libL3Cam.a

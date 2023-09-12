@@ -12,13 +12,12 @@
 #include <QTimer>
 
 #include "imageSaveDataExecutorMessages.h"
-#include "unistd.h"
 
-
-#if defined _WIN32
+#ifdef _WIN32
 #define PIXEL_FORMAT BGR8
-#elif defined __linux__
+#else
 #define PIXEL_FORMAT RGB8
+#include "unistd.h"
 #endif
 
 class imageSaveDataExecutor : public QObject

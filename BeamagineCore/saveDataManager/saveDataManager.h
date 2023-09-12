@@ -13,9 +13,13 @@
 #include <QTimer>
 
 #include "saveDataManagerMessages.h"
-
-#include "unistd.h"
 #include "saveDataStructs.h"
+
+#ifdef _WIN32
+
+#else
+#include <unistd.h>
+#endif
 
 
 class saveDataManager : public QObject

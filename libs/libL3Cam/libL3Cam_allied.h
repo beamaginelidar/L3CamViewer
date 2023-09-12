@@ -1,11 +1,5 @@
-//==============================================================================
-//
-// Title:		libL3Cam_allied
-// Purpose:		Interface of the library for communications with L3CAM devices allied sensors
-//
-// Created on:	05/07/2023 at 12:00:00 by Beamagine.
 /*  Copyright (c) 2023, Beamagine
- *
+
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without modification,
@@ -30,6 +24,14 @@
     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+//==============================================================================
+//
+// Title:		libL3Cam_allied
+// Purpose:		Interface of the library for communications with L3CAM devices allied sensors
+//
+// Created on:	05/07/2023 at 12:00:00 by Beamagine.
+// Copyright:	. All Rights Reserved.
 //
 //==============================================================================
 
@@ -42,9 +44,6 @@
 
 //==============================================================================
 // Include files
-#ifdef _WIN32
-#include "cvidef.h"
-#endif
 #include "beamagine.h"
 #include "beamErrors.h"
 

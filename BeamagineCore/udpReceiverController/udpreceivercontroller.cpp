@@ -120,6 +120,8 @@ void udpReceiverController::run()
         else if(m_read_rgb){
             readRgbImage();
         }
+    }else{
+        qDebug()<<"Error initializing UDP receiving socket"<<m_error_code;
     }
 }
 
@@ -291,6 +293,9 @@ void udpReceiverController::readPointcloud(){
 
 int udpReceiverController::initializeSocket()
 {
+    m_socket.sin_family = AF_INET;
+    m_socket.sin_port = htons((int)m_udp_port);
+
 #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2,2), &m_wsa) != 0){
         m_error_code = -1;
@@ -301,21 +306,11 @@ int udpReceiverController::initializeSocket()
         m_error_code = -2;
         return m_error_code;
     }
-#else
-    if( (m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
-        qDebug()<<"Socket Error";
-        m_error_code = -1;
+
+    if (inet_pton(AF_INET, (char*)m_address.toStdString().c_str(), &(m_socket.sin_addr)) != 1) {
+        m_error_code = -5;
         return m_error_code;
     }
-#endif
-    memset((char *) &m_socket, 0, sizeof(struct sockaddr_in));
-
-    m_socket.sin_addr.s_addr = inet_addr ((char*)m_address.toStdString().c_str());
-
-    m_socket.sin_family = AF_INET;
-    m_socket.sin_port = htons((int)m_udp_port);
-
-#ifdef _WIN32
 
     if(bind(m_udp_socket, (sockaddr*)&m_socket, sizeof(m_socket)) == SOCKET_ERROR){
         m_error_code = -3;
@@ -324,31 +319,41 @@ int udpReceiverController::initializeSocket()
     //!set size for sockets
     int rcvbufsize = 134217728;
     if(0 != setsockopt(m_udp_socket, SOL_SOCKET,SO_RCVBUF,(char*)&rcvbufsize,sizeof(rcvbufsize))){
-        qDebug()<<"Error setting size to socket";
         m_error_code = -4;
         return m_error_code;
     }
 #else
+    if( (m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
+        qDebug()<<"Socket Error";
+        m_error_code = -1;
+        return m_error_code;
+    }
+
+    memset((char *) &m_socket, 0, sizeof(struct sockaddr_in));
+    m_socket.sin_addr.s_addr = inet_addr ((char*)m_address.toStdString().c_str());
+
     if (inet_aton((char*)m_address.toStdString().c_str(), &m_socket.sin_addr) == 0)
     {
         qDebug()<<"inet_aton() failed";
-        return 2;
+        return -2;
     }
 
     if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
     {
         qDebug()<<"Could not bind name to socket";
         close(m_socket_descriptor);
-        return 3;
+        return -3;
     }
 
     //!set size for sockets
     int rcvbufsize = 134217728;
     if(0 != setsockopt(m_socket_descriptor,SOL_SOCKET,SO_RCVBUF,(char*)&rcvbufsize,sizeof(rcvbufsize))){
         qDebug()<<"Error setting size to socket";
-        return 4;
+        return -4;
     }
+
 #endif
+
     return 0;
 }
 

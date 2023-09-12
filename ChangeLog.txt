@@ -1,0 +1,15 @@
+[12/09/2023] 1.1.2
+
+++Added
++Support for Windows tested
++Reorganization of udp class that reads data streaming 
++Libraries needed to compile in Windows
++New libL3Cam library headers (version 0.1.15R)
+
+--Removed
+-Unused l3cam library erros
+-qDebug() messages that are writen in log window
+
+**Fixed errors
+
+Known bugs

@@ -35,6 +35,7 @@
 #include <QLineEdit>
 
 #include <libs/libL3Cam/libL3Cam.h>
+
 #include "libL3Cam.h"
 #include "libL3Cam_polarimetric.h"
 #include "libL3Cam_econ.h"
@@ -42,6 +43,7 @@
 #include "libL3Cam_allied.h"
 #include "beamagine.h"
 #include "beamErrors.h"
+
 
 #include <udpreceivercontroller.h>
 #include <saveDataManager.h>
