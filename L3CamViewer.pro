@@ -72,7 +72,7 @@ INCLUDEPATH += \
 unix {
 
 #OPENCV
-INCLUDEPATH += /usr/local/include/opencv4/ \
+INCLUDEPATH += $(HOME)/openCV4.5.5/lib/include/opencv4/ \
 
 LIBS += -L$$PWD/libs/opencv4/ \
     -lopencv_core \

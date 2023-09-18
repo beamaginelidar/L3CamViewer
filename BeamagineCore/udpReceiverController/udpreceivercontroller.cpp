@@ -293,8 +293,6 @@ void udpReceiverController::readPointcloud(){
 
 int udpReceiverController::initializeSocket()
 {
-    m_socket.sin_family = AF_INET;
-    m_socket.sin_port = htons((int)m_udp_port);
 
 #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2,2), &m_wsa) != 0){
@@ -306,6 +304,9 @@ int udpReceiverController::initializeSocket()
         m_error_code = -2;
         return m_error_code;
     }
+
+    m_socket.sin_family = AF_INET;
+    m_socket.sin_port = htons((int)m_udp_port);
 
     if (inet_pton(AF_INET, (char*)m_address.toStdString().c_str(), &(m_socket.sin_addr)) != 1) {
         m_error_code = -5;
@@ -331,6 +332,9 @@ int udpReceiverController::initializeSocket()
 
     memset((char *) &m_socket, 0, sizeof(struct sockaddr_in));
     m_socket.sin_addr.s_addr = inet_addr ((char*)m_address.toStdString().c_str());
+
+    m_socket.sin_family = AF_INET;
+    m_socket.sin_port = htons((int)m_udp_port);
 
     if (inet_aton((char*)m_address.toStdString().c_str(), &m_socket.sin_addr) == 0)
     {
