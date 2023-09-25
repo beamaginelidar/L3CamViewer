@@ -2,11 +2,11 @@
 
 This package is a Qt5 application to visualize the L3Cam device sensors manufactured by [Beamagine](https://beamagine.com/) and test the libL3Cam library, provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
 
-## Installation
+# Installation
 
-### Dependencies
+## Dependencies
 
-#### libL3Cam
+### libL3Cam
 
 First, you can download and install the L3Cam SDK. It's not necessary since it is already in `/libs`.
 
@@ -16,9 +16,19 @@ To do so, download the required package from Beamagine's [L3Cam SDK](https://git
 sudo dpkg -i <PACKAGE>
 ```
 
-#### OpenCV & PCL
+### OpenCV & PCL
 
-This package relies on the OpenCV 4 and PCL 1.9.0 libraries for data visualization. 
+### OpenCV
+
+The OpenCV version used in Linux Ubuntu 20.04 is 4.5.5
+
+The OpenCV version used in Windows 10 is 4.4.0
+
+### PCL
+
+The PCL version used in Linux Ubuntu 20.04 is 1.9.0
+
+The PCL version used in Windows 10 is 1.9.1
 
 You might have to change some parts of the `L3CamViewer.pro` file and put the routes to where the PCL library is located on your PC instead of `$(HOME)/(...)`.
 
@@ -32,9 +42,9 @@ You might also have to change the `LD_LIBRARY_PATH` environment variable in Qt C
 
 4. Modify it so it points to: `<YOUR_WORKSPACE>/L3CamViewer/libs/opencv4` and `<YOUR_WORKSPACE>/L3CamViewer/libs/pcl-1.9.0`
 
-#### Other dependencies
+### Other dependencies
 
-Install needed dependencies:
+Install needed dependencies executing the script **install.sh** or manually execute in a terminal:
 
 ```
 sudo apt update
@@ -46,7 +56,7 @@ sudo apt install libtinyxml2.6.2v5
 sudo apt install libqt5core5a libqt5gui5 libqt5network5 libqt5widgets5 libqt5printsupport5 -y 
 ```
 
-### L3Cam Viewer
+## L3Cam Viewer
 
 Clone this repository in your workspace (e.g. workspace):
 
@@ -95,23 +105,23 @@ sudo sysctl -p
 
 | PROTOCOL | PORT                             | CONFIGURATION  |
 | -------- | -------------------------------- | -------------- |
-| TCP      | 6000                             | Fixed          |
-| UDP      | 6050 (LIDAR)                     | Fixed          |
+| TCP      | 6000 (L3CAM)                     | Fixed          |
+| UDP      | 6050 (LiDAR)                     | Fixed          |
 | UDP      | 6060 (Allied Wide, Polarimetric) | Fixed          |
 | UDP      | 6020 (Allied Narrow, RGB)        | Fixed          |
 | UDP      | 6030 (LWIR)                      | Fixed          |
-| RTSP     | 5040 (LIDAR)                     | Reconfigurable |
+| RTSP     | 5040 (LiDAR)                     | Reconfigurable |
 | RTSP     | 5030 (Allied Wide, Polarimetric) | Reconfigurable |
 | RTSP     | 5010 (Allied Narrow, RGB)        | Reconfigurable |
 | RTSP     | 5020 (LWIR)                      | Reconfigurable |
 
 TCP is used internally by `libL3Cam` and is transparent to the user. However, the system host must have the required port available.
 
-## User guide
+# User guide
 
 Start the application and make sure the L3Cam is connected.
 
-### Initialization
+## Initialization
 
 To initialize the L3Cam, click the `FAST INIT` button or follow these steps:
 
@@ -129,7 +139,7 @@ To initialize the L3Cam, click the `FAST INIT` button or follow these steps:
 
 The response of every button call is shown in the logger screen below the app.
 
-### Power off L3Cam
+## Power off L3Cam
 
 To power off the device safely you should follow these steps:
 
@@ -143,7 +153,33 @@ You can also `TERMINATE` the app without `Power OFF`.
 
 Both `Power OFF` and `TERMINATE` will stop stream and device, that's why it's optional.
 
-### Tabs
+## Tabs
+
+### System
+In this tab the user is able to:
++ Change the network configuration of L3CAM device, such as the fixed ip address, or enable/disable dhcp
++ Get temperatures information of the device and sensors. Using the `GET Temperatures` button, the different temperature sensors information will be shown.
++ The available sensors, and the satatus of each sensor will be shown when connected to a device. 
++ Device information such as the IP address, the serial number and the software version.
++ Change the RTSP streaming pipelines for each sensor.
+
+### 2D Sensors
+This tab includes the configuration parameters for the Econ RGB camera, the Polarimetric camera (mono or RGB-P) and the thermal camera.
+
++ Change the available parameters of the econ RGB Camera
++ Change the available parameters of the allied polarimetric mono or RGB-P camera.
++ Change the available parameters of the thermal camera.
++ Change the cameras streaming protocol (UDP, RTSP over gstreamer).
++ Get the current camera streaming pipeline.
+
+### Allied Cameras
+This tab is dedicated to the allied camera parameters. If the wide camera and the narrow camera are connected, using the round button selector `Wide Camera` and `Narrow Camera` will determinate the camera which is being modified.
++ Change the available allied camera parameters
++ Change streaming protocol (UDP, RTSP over gstreamer)
++ Get current camera streaming pipeline.
+### LiDAR Settings
+
+### Data Collection
 
 On the **System** tab, info about the system is found among some changeable parameters of the system. Be careful with changing these parameters to avoid further problems.
 
