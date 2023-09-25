@@ -124,11 +124,13 @@ typedef struct sensor{
     uint8_t sensor_status;
     uint8_t image_type;
     bool perception_enabled;
+    bool sensor_available;
 }sensor;
 
 typedef struct l3cam{
     char ip_address[16];
-    char serial_number[10];
+    char serial_number[16];
+    char app_version[20];
     uint8_t model;
 }l3cam;
 

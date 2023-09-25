@@ -89,10 +89,11 @@ INCLUDEPATH += $(HOME)/pcl-1.9.0/libs/include/pcl-1.9 \
 
 LIBS += -L$$PWD/libs/pcl-1.9.0 \
     -lpcl_common \
-    -lpcl_features \
-    -lpcl_filters \
     -lpcl_io \
-    -lpcl_visualization
+    -lpcl_visualization \
+    -lpcl_kdtree \
+    -lpcl_io \
+    -lpcl_io_ply
 
 LIBS += -lboost_system \
     -lvtkCommonCore-7.1 \

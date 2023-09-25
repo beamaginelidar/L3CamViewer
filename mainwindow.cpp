@@ -189,19 +189,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     enableSaveConfiguration();
 
-    m_thermal_status = deviceStatus::undefined;
-    m_polarimetric_status = deviceStatus::undefined;
-    m_rgb_status = deviceStatus::undefined;
-    m_lidar_status = deviceStatus::undefined;
-    m_allied_wide_status = deviceStatus::undefined;
-    m_allied_narrow_status = deviceStatus::undefined;
-
-    updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
-    updateSensorStatus(m_polarimetric_status, ui->label_polarimetric_status_value);
-    updateSensorStatus(m_rgb_status, ui->label_rgb_status_value);
-    updateSensorStatus(m_lidar_status, ui->label_lidar_status_value);
-    updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
-    updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
 
     dev_initialized = false;
 
@@ -299,12 +286,19 @@ void MainWindow::initializeGUI()
     m_point_cloud_viewer->startController();
     m_point_cloud_viewer->setAxisEnabled(true);
 
-    m_thermal_status = deviceStatus::error_s;
-    m_lidar_status = deviceStatus::error_s;
-    m_polarimetric_status = deviceStatus::error_s;
-    m_rgb_status = deviceStatus::error_s;
-    m_allied_wide_status = deviceStatus::error_s;
-    m_allied_narrow_status = deviceStatus::error_s;
+    m_thermal_status = deviceStatus::undefined;
+    m_polarimetric_status = deviceStatus::undefined;
+    m_rgb_status = deviceStatus::undefined;
+    m_lidar_status = deviceStatus::undefined;
+    m_allied_wide_status = deviceStatus::undefined;
+    m_allied_narrow_status = deviceStatus::undefined;
+
+    updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
+    updateSensorStatus(m_polarimetric_status, ui->label_polarimetric_status_value);
+    updateSensorStatus(m_rgb_status, ui->label_rgb_status_value);
+    updateSensorStatus(m_lidar_status, ui->label_lidar_status_value);
+    updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
+    updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
 }
 
 void MainWindow::initializeRgbDefault()
@@ -515,6 +509,10 @@ void MainWindow::on_pushButton_findDevices_clicked()
     if(m_devices_connected != 0){
         addMessageToLogWindow("Device address " + QString(m_devices[0].ip_address));
 
+        ui->label_device_ip_address->setText(QString("IP ADDRESS: %1").arg(m_devices[0].ip_address));
+        ui->label_device_sn->setText(QString("S/N: %1").arg(m_devices[0].serial_number));
+        ui->label_device_sw_version->setText(QString("VERSION: %1").arg(m_devices[0].app_version));
+
         ui->pushButton_start_device->setEnabled(true);
 
         ui->label_l3cam_status->setText("Connected");
@@ -618,6 +616,10 @@ void MainWindow::searchTimerTimeOut()
 
         if(m_devices_connected > 0){
             m_searching_device = false;
+
+            ui->label_device_ip_address->setText(QString("IP ADDRESS: %1").arg(m_devices[0].ip_address));
+            ui->label_device_sn->setText(QString("S/N: %1").arg(m_devices[0].serial_number));
+            ui->label_device_sw_version->setText(QString("VERSION: %1").arg(m_devices[0].app_version));
 
             addMessageToLogWindow("Device address " + QString(m_devices[0].ip_address));
 
@@ -1585,12 +1587,29 @@ void MainWindow::updateSensorStatus(uint8_t device_status, QLabel *status_label)
 void MainWindow::initializeSystemStatus()
 {
 
-    (m_thermal_sensor != NULL) ? m_thermal_status = deviceStatus::no_error : m_thermal_status = deviceStatus::error_s;
-    (m_lidar_sensor != NULL) ? m_lidar_status = deviceStatus::no_error : m_lidar_status = deviceStatus::error_s;
-    (m_pol_sensor != NULL) ? m_polarimetric_status = deviceStatus::no_error : m_polarimetric_status = deviceStatus::error_s;
-    (m_rgb_sensor != NULL) ? m_rgb_status = deviceStatus::no_error : m_rgb_status = deviceStatus::error_s;
-    (m_allied_wide_sensor != NULL) ? m_allied_wide_status = deviceStatus::no_error : m_allied_wide_status = deviceStatus::error_s;
-    (m_allied_narrow_sensor != NULL) ? m_allied_narrow_status = deviceStatus::no_error : m_allied_narrow_status = deviceStatus::error_s;
+    if(m_lidar_sensor != NULL){
+        (m_lidar_sensor->sensor_available) ? m_lidar_status = deviceStatus::no_error : m_lidar_status = deviceStatus::error_s;
+    }
+
+    if(m_thermal_sensor != NULL){
+        (m_thermal_sensor->sensor_available) ? m_thermal_status = deviceStatus::no_error : m_thermal_status = deviceStatus::error_s;
+    }
+
+    if(m_pol_sensor != NULL){
+        (m_pol_sensor->sensor_available) ? m_polarimetric_status = deviceStatus::no_error : m_polarimetric_status = deviceStatus::error_s;
+    }
+
+    if(m_rgb_sensor != NULL){
+        (m_rgb_sensor->sensor_available) ? m_rgb_status = deviceStatus::no_error : m_rgb_status = deviceStatus::error_s;
+    }
+
+    if(m_allied_wide_sensor != NULL){
+        (m_allied_wide_sensor->sensor_available) ? m_allied_wide_status = deviceStatus::no_error : m_allied_wide_status = deviceStatus::error_s;
+    }
+
+    if(m_allied_narrow_sensor != NULL){
+        (m_allied_narrow_sensor->sensor_available) ? m_allied_narrow_status = deviceStatus::no_error : m_allied_narrow_status = deviceStatus::error_s;
+    }
 
     updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
     updateSensorStatus(m_polarimetric_status, ui->label_polarimetric_status_value);

@@ -1,14 +1,16 @@
-[12/09/2023] 1.1.2
+[25/09/2023] 1.1.2
 
 ++Added
-+Support for Windows tested
-+Reorganization of udp class that reads data streaming 
-+Libraries needed to compile in Windows
-+New libL3Cam library headers (version 0.1.15R)
++ Support for Windows tested
++ Reorganization of udp class that reads data streaming 
++ Libraries needed to compile in Windows
++ New libL3Cam library headers (version 0.1.15R)
++ Ui elements to show the l3cam device information (ip address, serial number and software version)
++ the not configured sensors will be shown in grey color for devices with version 2.2.6 and higher
 
 --Removed
--Unused l3cam library erros
--qDebug() messages that are writen in log window
+- Unused l3cam library erros
+- qDebug() messages that are writen in log window
 
 **Fixed errors
 
