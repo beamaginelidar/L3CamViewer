@@ -178,13 +178,29 @@ This tab is dedicated to the allied camera parameters. If the wide camera and th
 + Change streaming protocol (UDP, RTSP over gstreamer)
 + Get current camera streaming pipeline.
 ### LiDAR Settings
+This tab includes the parameters related to the LiDAR and the 3D visualization settings.\
+For the visualization settings:
++ Change the visualization point cloud color.
++ Changethe background color of the 3D window.
++ Change color range.
++ Show/hide the 3D axis.
 
+For the LiDAR settings:
++ Remote points filter, allows to select a minumim and maximum distance for the pointcloud.
++ Bias, behaves as the gain of a camera, high BIAS value means more detecetivity but also more noise, low BIAS means less detectivity and less noise.
++ Change the streaming protocol (UDP, RTSP over gstreamer). The RTSP is only by custom request, if you need it please contact us.
 ### Data Collection
+This tab is to save the images and the pointclouds. The pointclouds are saved in a propieraty binary format and the images are saved in png format.|
+The name of the files work as a timestamp with the format **hhmmsszzz.ext**.\
+For example an image captured at 14:25:42:501 will have the name 142542501.png
 
-On the **System** tab, info about the system is found among some changeable parameters of the system. Be careful with changing these parameters to avoid further problems.
+**Use different folders for each sensor, especially if they are 2D sensors**
 
-On the **Sensors** tab, all the parameters for the RGB, Thermal and LiDAR sensors are available. 
-
-On the **AlliedCameras** tab, all the parameters for the Allied Wide and Narrow cameras are available. 
+Use the checkbox to enable the saving of the specific sensor.\
+Use the `...` button to select a folder for the selected sensor.\
+In the `Frames to save` parameter, select a number of frames or use **-1** to save all the frames.\
+Click on the green button to start the data collection, it will turn red until clicked again or until the number of frames has been reached.
+If needed, the option to blur the faces of people detected can be done by enabling the `Blur Faces` check box.
+### 
 
 Feel free to test all the Sensors and AlliedCameras parameters, but note that some parameters can only be changed when the L3Cam is not streaming and some when it is streaming.
