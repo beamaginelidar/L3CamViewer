@@ -190,7 +190,7 @@ For the LiDAR settings:
 + Bias, behaves as the gain of a camera, high BIAS value means more range but also more noise, low BIAS means less range and less noise.
 + Change the streaming protocol (UDP, RTSP over gstreamer). The RTSP is only by custom request, if you need it please contact us.
 ### Data Collection
-This tab is to save the images and the point clouds. The point clouds are saved in a custom binary format and the images are saved in png format.|
+This tab is to save the images and the point clouds. The point clouds are saved in a custom binary format and the images are saved in png format.\
 The name of the files work as a timestamp with the format **hhmmsszzz.ext**.\
 For example, an image captured at 14:25:42:501 will have the name 142542501.png
 
@@ -198,7 +198,7 @@ For example, an image captured at 14:25:42:501 will have the name 142542501.png
 
 Use the checkbox to enable the saving of the specific sensor.\
 Use the `...` button to select a folder for the selected sensor.\
-In the `Frames to save` parameter, select a number of frames or use **-1** to save all the frames.\
+The `Frames to save` parameter, the user can select a number of frames to save or use **-1** to save all the frames.\
 Click on the green button to start the data collection, it will turn red until clicked again or until the number of frames has been reached.
 If needed, the option to blur the faces of people detected can be done by enabling the `Blur Faces` check box.
 ### 
