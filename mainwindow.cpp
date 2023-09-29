@@ -71,6 +71,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->label_image_thermal->setBackgroundRole(QPalette::Base);
     ui->label_image_thermal->setScaledContents(true);
 
+    ui->label_image_rgb_2->setBackgroundRole(QPalette::Base);
+    ui->label_image_rgb_2->setScaledContents(true);
 
     ui->label_l3cam_status->setStyleSheet(m_status_undefined_style);
 

@@ -1,6 +1,6 @@
 # L3CamViewer
 
-This package is a Qt5 application to visualize the L3Cam device sensors manufactured by [Beamagine](https://beamagine.com/) and test the libL3Cam library, provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
+This package is a Qt5 application to visualize the L3Cam device sensors manufactured by [Beamagine](https://beamagine.com/) and as example of the use of the libL3Cam library, provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
 
 # Installation
 

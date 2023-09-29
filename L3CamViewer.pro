@@ -68,7 +68,6 @@ INCLUDEPATH += \
 
 
 # TODO: Modify INCLUDEPATH to match your environment
-
 unix {
 
 #OPENCV

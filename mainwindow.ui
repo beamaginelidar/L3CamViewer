@@ -251,6 +251,9 @@
          <height>250</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color:rgb(180,180,180)</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -269,6 +272,9 @@
          <width>16777215</width>
          <height>250</height>
         </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color:rgb(180,180,180)</string>
        </property>
        <property name="text">
         <string/>
@@ -289,6 +295,9 @@
          <height>250</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color:rgb(180,180,180)</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -306,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
