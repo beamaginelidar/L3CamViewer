@@ -25,3 +25,5 @@ All notable changes to the L3CamViewer application will be documented in this fi
 ### Known bugs
 
 ### Issues
+
+This version is not fully compatible with l3cam devices with software version older than 2.2.6. When connected with a lower version, all the sensors that are not available in the device will appear with error status.
