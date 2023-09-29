@@ -2,7 +2,33 @@
 
 This package is a Qt5 application to visualize the L3Cam device sensors manufactured by [Beamagine](https://beamagine.com/) and as example of the use of the libL3Cam library, provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
 
-# Installation
+# Binaries only installation
+
+Dont forget to follow the [Operational Advise](#operational-advice) steps for your environment after installing.
+
+## Linux
+
+Download the compressed `tar.xz` file for your distribution from the [releases page](https://github.com/beamaginelidar/L3CamViewer/releases).
+
+Extract the files and run the `install.sh` script to install the needed dependencies.
+
+```
+./install.sh
+```
+
+To execute the application run the `run.sh` script.
+
+```
+./run.sh
+```
+
+## Windows
+
+Download the compressed `rar` file for your distribution from the [releases page](https://github.com/beamaginelidar/L3CamViewer/releases).
+
+Extract the files and run the `L3CamViewer.exe` to run the application.
+
+# Source code installation
 
 ## Dependencies
 
@@ -64,23 +90,15 @@ Clone this repository in your workspace (e.g. workspace):
 cd ~/workspace && git clone https://github.com/beamaginelidar/libL3CamTest
 ```
 
-## Operational Advice
+# Operational Advice
 
-### MTU Size
+## Jumbo frames
 
-You will need to increase the MTU (Maximum Transmission Unit) on the network interface attached to the camera.
+You will need to enable jumbo frames on your Ethernet adapter. A jumbo frame is an Ethernet frame that is larger than 1500 bytes. Most Ethernet adapters support jumbo frames, however it is usually turned off by default. Please note in order to set a 9000 byte packet size on the camera, the Ethernet adapter must support a jumbo frame size of 9000 bytes or higher.
 
-You can check what your current MTU setting is by running the following command:
+See the "Windows host configuration" and "Linux host configuration" sections of the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf) for full details on how to enable jumbo frames.
 
-```
-ip a | grep mtu
-```
-
-You should increase the MTU to `9000` to allow jumbo frames. If you use Network Manager, this can be done by opening the network interface settings and editing the "MTU" box under the "Identity" tab.
-
-See the "Linux host configuration" section of the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf) for full details.
-
-### Receive Buffer Size
+## Receive Buffer Size (Linux only)
 
 It is also recommended to increase your network default and maximum receive buffer size.
 
@@ -99,7 +117,7 @@ sudo sh -c "echo 'net.core.rmem_max=268435456' >> /etc/sysctl.conf"
 sudo sysctl -p
 ```
 
-### Port usage
+## Port usage
 
 `libL3Cam` uses the following ports for streaming and communications:
 
