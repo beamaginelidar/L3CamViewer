@@ -157,8 +157,8 @@ Both `Power OFF` and `TERMINATE` will stop stream and device, that's why it's op
 
 ### System
 In this tab the user is able to:
-+ Change the network configuration of L3CAM device, such as the fixed ip address, or enable/disable dhcp.
-+ Get temperatures information of the device and sensors. Using the `GET Temperatures` button, the different temperature sensors information will be shown.
++ Change the network configuration of L3CAM device, such as the fixed IP address, or enable/disable DHCP.
++ Get temperatures information of the device and sensors. Using the `GET Temperatures` button, the different sensors temperature information will be shown.
 + The available sensors, and the status of each sensor will be shown when connected to a device. 
 + Device information such as the IP address, the serial number and the software version.
 + Change the RTSP streaming pipelines for each sensor.
@@ -186,13 +186,13 @@ For the visualization settings:
 + Show/hide the 3D axis.
 
 For the LiDAR settings:
-+ Remote points filter, allows to select a minumim and maximum distance for the pointcloud.
-+ Bias, behaves as the gain of a camera, high BIAS value means more detecetivity but also more noise, low BIAS means less detectivity and less noise.
++ Remote points filter, allows to select a minimum and maximum distance for the point cloud.
++ Bias, behaves as the gain of a camera, high BIAS value means more range but also more noise, low BIAS means less range and less noise.
 + Change the streaming protocol (UDP, RTSP over gstreamer). The RTSP is only by custom request, if you need it please contact us.
 ### Data Collection
-This tab is to save the images and the pointclouds. The pointclouds are saved in a propieraty binary format and the images are saved in png format.\
-The name of the files work as a timestamp with the format **hhmmsszzz.ext**.
-For example an image captured at 14:25:42:501 will have the name 142542501.png
+This tab is to save the images and the point clouds. The point clouds are saved in a custom binary format and the images are saved in png format.\
+The name of the files work as a timestamp with the format **hhmmsszzz.ext**.\
+For example, an image captured at 14:25:42:501 will have the name 142542501.png
 
 **Use different folders for each sensor, especially if they are 2D sensors**
 
