@@ -32,6 +32,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QTemporaryDir>
+#include <QStringList>
 
 Q_DECLARE_METATYPE(uint16_t)
 Q_DECLARE_METATYPE(uint8_t)
@@ -192,7 +193,8 @@ MainWindow::MainWindow(QWidget *parent) :
     enableSaveConfiguration();
 
 
-    dev_initialized = false;
+    m_dev_initialized = false;
+    m_new_thermal_library = false;
 
     //!load face blurring
     loadBlurringNetworks();
@@ -203,6 +205,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //!Always go to first tab
     ui->tabWidget->setCurrentIndex(0);
+
+    m_initializing_thermal_settings = false;
 }
 
 MainWindow::~MainWindow()
@@ -426,7 +430,7 @@ void MainWindow::initializeReceivers()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if(dev_initialized){
+    if(m_dev_initialized){
         int ret = QMessageBox::warning(this, "Terminate",
                                        "Are you sure you want to terminate?\n\n"
                                        "The app will close.",
@@ -496,7 +500,7 @@ void MainWindow::on_pushButton_initialize_clicked()
     addMessageToLogWindow("initializing response " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
 
     if(!error){
-        dev_initialized = true;
+        m_dev_initialized = true;
     }
 }
 
@@ -514,6 +518,10 @@ void MainWindow::on_pushButton_findDevices_clicked()
         ui->label_device_ip_address->setText(QString("IP ADDRESS: %1").arg(m_devices[0].ip_address));
         ui->label_device_sn->setText(QString("S/N: %1").arg(m_devices[0].serial_number));
         ui->label_device_sw_version->setText(QString("VERSION: %1").arg(m_devices[0].app_version));
+
+        m_initializing_thermal_settings = true;
+        enableThermalSettingsForVersion(QString("%1").arg(m_devices[0].app_version));
+        m_initializing_thermal_settings = false;
 
         ui->pushButton_start_device->setEnabled(true);
 
@@ -590,7 +598,7 @@ void MainWindow::on_pushButton_fast_init_clicked()
     addMessageToLogWindow("INITIALIZE - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
 
     if(!error){
-        dev_initialized = true;
+        m_dev_initialized = true;
     }
 
     if(error != L3CAM_OK){
@@ -669,66 +677,21 @@ void MainWindow::on_pushButton_apply_thermal_filter_clicked()
 
 void MainWindow::on_comboBox_thermal_color_currentIndexChanged(int index)
 {
-    thermalTypes value = thermal_WHITE;
-
-    switch(index){
-    case 0:
-        value = thermal_WHITE;
-        break;
-    case 1:
-        value = thermal_BLACK;
-        break;
-    case 2:
-        value = thermal_IRON;
-        break;
-    case 3:
-        value = thermal_COOL;
-        break;
-    case 4:
-        value = thermal_AMBER;
-        break;
-    case 5:
-        value = thermal_INDIGO;
-        break;
-    case 6:
-        value = thermal_TYRIAN;
-        break;
-    case 7:
-        value = thermal_GLORY;
-        break;
-    case 8:
-        value = thermal_ENVY;
-        break;
-    case 9:
-        value = thermal_WHITE_NEW;
-        break;
-    case 10:
-        value = thermal_BLACK_NEW;
-        break;
-    case 11:
-        value = thermal_SPECTRA;
-        break;
-    case 12:
-        value = thermal_PRISM;
-        break;
-    case 13:
-        value = thermal_TYRIAN_NEW;
-        break;
-    case 14:
-        value = thermal_AMBER_NEW;
-        break;
-    case 15:
-        value = thermal_IRON_NEW;
-        break;
-    case 16:
-        value = thermal_HI;
-        break;
-    case 17:
-        value = thermal_HILO;
-        break;
+    if(m_initializing_thermal_settings){
+        return;
     }
 
-    int error = CHANGE_THERMAL_CAMERA_COLORMAP(m_devices[0], value);
+    int error = L3CAM_OK;
+    int32_t value = 0;
+
+
+    if(m_new_thermal_library){
+        value = index;
+    }else{
+        value = getValueForOldLibrary(index);
+    }
+
+    error = CHANGE_THERMAL_CAMERA_COLORMAP(m_devices[0], (int32_t)index);
 
     if(error != L3CAM_OK){
         addMessageToLogWindow("Error changing thermal colormap - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), logType::error);
@@ -1107,6 +1070,13 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
                 applyFaceBlurring(image_to_show);
             }
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2RGB);
+        }else if(channels == 2){
+            image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
+            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
+            if(m_blurring_loaded && m_apply_blurring){
+                applyFaceBlurring(image_to_show);
+            }
+            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
@@ -1151,7 +1121,6 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
         ui->label_image_rgb->adjustSize();
     }
     image_to_show.release();
-    free(image_data);
 }
 
 void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, uint16_t width, uint8_t channels, std::vector<detectionImage> detections, uint32_t timestamp)
@@ -1163,6 +1132,14 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2RGB);
+        }
+        else if(channels == 2){
+            image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
+            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
+            if(m_blurring_loaded && m_apply_blurring){
+                applyFaceBlurring(image_to_show);
+            }
+            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
@@ -1204,7 +1181,6 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
         ui->label_image_rgb_2->adjustSize();
     }
     image_to_show.release();
-    free(image_data);
 }
 
 void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, uint16_t width, uint8_t channels, std::vector<detectionImage> detections, uint32_t timestamp)
@@ -1249,7 +1225,6 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
     }
 
     image_to_show.release();
-    free(image_data);
 }
 
 void MainWindow::on_pushButton_set_th_protocol_clicked()
@@ -1682,6 +1657,115 @@ void MainWindow::errorNotification(const int *error)
     QMetaObject::invokeMethod(mainWindowObj, "updateSensorError", Qt::QueuedConnection, Q_ARG(int32_t, *error));
 }
 
+void MainWindow::enableThermalSettingsForVersion(QString l3cam_version)
+{
+    //!version is master_a.b.c
+    QString ver_num = l3cam_version.split("_")[1];
+    QStringList numbers_ver = ver_num.split("."); // a.b.c
+    int version = (numbers_ver.at(0).toInt() * 100) + (numbers_ver.at(1).toInt()*10) + (numbers_ver.at(2).toInt());
+    ui->comboBox_thermal_color->clear();
+
+    if(version < 229){
+        //!old thermal camera library
+        m_new_thermal_library = false;
+        ui->comboBox_thermal_pipeline->setDisabled(true);
+        ui->comboBox_thermal_color->addItem("WHITE");
+        ui->comboBox_thermal_color->addItem("BLACK");
+        ui->comboBox_thermal_color->addItem("IRON");
+        ui->comboBox_thermal_color->addItem("COOL");
+        ui->comboBox_thermal_color->addItem("AMBER");
+        ui->comboBox_thermal_color->addItem("INDIGO");
+        ui->comboBox_thermal_color->addItem("TYRIAN");
+        ui->comboBox_thermal_color->addItem("GLORY");
+        ui->comboBox_thermal_color->addItem("ENVY");
+        ui->comboBox_thermal_color->addItem("WHITE_NEW");
+        ui->comboBox_thermal_color->addItem("BLACK_NEW");
+        ui->comboBox_thermal_color->addItem("SPECTRA");
+        ui->comboBox_thermal_color->addItem("PRISM");
+        ui->comboBox_thermal_color->addItem("TYRIAN_NEW");
+        ui->comboBox_thermal_color->addItem("AMBER_NEW");
+        ui->comboBox_thermal_color->addItem("IRON_NEW");
+        ui->comboBox_thermal_color->addItem("HI");
+        ui->comboBox_thermal_color->addItem("LO");
+    }else{
+        //!new thermal camera library
+        m_new_thermal_library = true;
+        ui->comboBox_thermal_pipeline->setEnabled(true);
+        ui->comboBox_thermal_color->addItem("WHITE");
+        ui->comboBox_thermal_color->addItem("BLACK");
+        ui->comboBox_thermal_color->addItem("SPECTRA");
+        ui->comboBox_thermal_color->addItem("PRISM");
+        ui->comboBox_thermal_color->addItem("TYRIAN");
+        ui->comboBox_thermal_color->addItem("IRON");
+        ui->comboBox_thermal_color->addItem("AMBER");
+        ui->comboBox_thermal_color->addItem("HI");
+        ui->comboBox_thermal_color->addItem("GREEN");
+    }
+
+}
+
+int32_t MainWindow::getValueForOldLibrary(int index)
+{
+    int32_t value = 0;
+    switch(index){
+    case 0:
+        value = thermal_WHITE;
+        break;
+    case 1:
+        value = thermal_BLACK;
+        break;
+    case 2:
+        value = thermal_IRON;
+        break;
+    case 3:
+        value = thermal_COOL;
+        break;
+    case 4:
+        value = thermal_AMBER;
+        break;
+    case 5:
+        value = thermal_INDIGO;
+        break;
+    case 6:
+        value = thermal_TYRIAN;
+        break;
+    case 7:
+        value = thermal_GLORY;
+        break;
+    case 8:
+        value = thermal_ENVY;
+        break;
+    case 9:
+        value = thermal_WHITE_NEW;
+        break;
+    case 10:
+        value = thermal_BLACK_NEW;
+        break;
+    case 11:
+        value = thermal_SPECTRA;
+        break;
+    case 12:
+        value = thermal_PRISM;
+        break;
+    case 13:
+        value = thermal_TYRIAN_NEW;
+        break;
+    case 14:
+        value = thermal_AMBER_NEW;
+        break;
+    case 15:
+        value = thermal_IRON_NEW;
+        break;
+    case 16:
+        value = thermal_HI;
+        break;
+    case 17:
+        value = thermal_HILO;
+        break;
+    }
+    return value;
+}
+
 void MainWindow::updateSensorError(int32_t error)
 {
     QString msg = "Error notification received: " + QString(getBeamErrorDescription(error)) + " (" + QString().number(error) + ")";
@@ -1696,6 +1780,8 @@ void MainWindow::updateSensorError(int32_t error)
     case ERROR_THERMAL_CAMERA_TIMEOUT:
         m_thermal_status = deviceStatus::error_s;
         updateSensorStatus(m_thermal_status, ui->label_thermal_1_status_value);
+        break;
+    case L3CAM_ERROR_DEVICE_DISCONNECTED:
         break;
     }
 }
@@ -3021,4 +3107,24 @@ void MainWindow::on_horizontalSlider_bias_left_sliderReleased()
 void MainWindow::pointSelectedNotification(QString data)
 {
     addMessageToLogWindow(data);
+}
+
+void MainWindow::on_comboBox_thermal_pipeline_currentIndexChanged(int index)
+{
+    if(m_initializing_thermal_settings){
+        return;
+    }
+
+    int error = CHANGE_THERMAL_PIPELINE(m_devices[0], (int32_t) index);
+    if(error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+void MainWindow::on_checkBox_enable_udp_temperatures_clicked(bool checked)
+{
+    int error = ENABLE_THERMAL_TEMPERATURE_DATA_UDP(m_devices[0], checked);
+    if(error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
 }

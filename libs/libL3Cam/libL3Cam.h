@@ -39,7 +39,7 @@
 #define __libL3Cam_H__
 
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 //==============================================================================
@@ -176,8 +176,8 @@ int CHANGE_POINT_CLOUD_COLOR_RANGE(l3cam device, int min_value, int max_value);
 
 //! @brief  Changes the range of LiDAR data
 //! @param  device The device to execute the function
-//! @param  min_distance The minimum distance of the LiDAR data
-//! @param  max_distance The maximum distance of the LiDAR data
+//! @param  min_distance The minimum distance in mm of the LiDAR data
+//! @param  max_distance The maximum distance in mm of the LiDAR data
 //! @return 0 if OK otherwise Error, check error definition
 int CHANGE_DISTANCE_RANGE(l3cam device, int min_distance, int max_distance);
 

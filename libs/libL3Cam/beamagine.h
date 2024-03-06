@@ -57,8 +57,8 @@ enum imageTypes {
     pol_hsv,
 };
 
+//!thermal image modes
 typedef enum thermalTypes{
-    //!thermal image modes
     thermal_WHITE = 1,
     thermal_BLACK = 17,
     thermal_IRON = 20,
@@ -79,6 +79,25 @@ typedef enum thermalTypes{
     thermal_HILO,
 }thermalTypes;
 
+//!thermal image modes beamagine_app version >= master_2.2.9
+typedef enum newThermalTypes{
+    new_thermal_WHITE_HOT = 0,
+    new_thermal_BLACK_HOT,
+    new_thermal_SPECTRA,
+    new_thermal_PRISM,
+    new_thermal_TYRIAN,
+    new_thermal_IRON,
+    new_thermal_AMBER,
+    new_thermal_HI,
+    new_thermal_GREEN,
+}newThermalTypes;
+
+typedef enum thermalPipelines{
+    thermal_LITE = 0,
+    thermal_LEGACY,
+    thermal_SEEK,
+}thermalPipelines;
+
 enum pointCloudColor{
     RAINBOW = 0,
     RAINBOW_Z,
@@ -93,8 +112,8 @@ enum pointCloudColor{
 };
 
 enum alliedCamerasIds{
-   wide_camera = 0,
-   narrow_camera = 1
+    wide_camera = 0,
+    narrow_camera = 1
 };
 
 #define allied_auto_precedence_minimize_noise 0

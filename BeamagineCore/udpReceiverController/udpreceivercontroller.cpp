@@ -42,7 +42,6 @@ udpReceiverController::udpReceiverController(QObject *parent) : QObject(parent)
     m_udp_port = 6000;
     m_address = "127.0.0.1";
 
-    m_image_ready = false;
     m_is_reading_image = false;
     m_is_pointcloud_ready = false;
     m_is_reading_pointcloud = false;
@@ -137,7 +136,7 @@ void udpReceiverController::readRgbImage(){
     int bytes_count = 0;
     socklen_t socket_len = sizeof(m_socket);
     char* buffer;
-    buffer = (char*)malloc(64000);
+    buffer = (char*)malloc(8000);
     m_is_reading_image = false;
     detectionImage curr_det;
     m_image_detections = 0;
@@ -149,14 +148,17 @@ void udpReceiverController::readRgbImage(){
     m_image_data_size = m_image_height*m_image_width*m_image_channels;
 
     m_image_buffer = (char*)malloc(m_image_data_size);
-    memset(m_image_buffer,0,m_image_data_size);
+    uint8_t* image_pointer = (uint8_t*)malloc(m_image_data_size);
+
+    memset(m_image_buffer, 0, m_image_data_size);
+    memset(image_pointer, 0, m_image_data_size);
 
     while(1){
 
 #ifdef _WIN32
-        int size_read = recvfrom(m_udp_socket, buffer, 64000, 0, (struct sockaddr*)&m_socket, &socket_len);
+        int size_read = recvfrom(m_udp_socket, buffer, 8000, 0, (struct sockaddr*)&m_socket, &socket_len);
 #else
-        int size_read = recvfrom(m_socket_descriptor, buffer, 64000, 0, (struct sockaddr*)&m_socket, &socket_len);
+        int size_read = recvfrom(m_socket_descriptor, buffer, 8000, 0, (struct sockaddr*)&m_socket, &socket_len);
 #endif
 
         if(size_read == 0){
@@ -172,9 +174,9 @@ void udpReceiverController::readRgbImage(){
             memcpy(&m_image_detections, &buffer[10], 1);
 
             m_image_data_size = m_image_height*m_image_width*m_image_channels;
+            memset(m_image_buffer,0,m_image_data_size);
 
             m_is_reading_image = true;
-            m_image_ready = false;
             m_detections.clear();
 
             bytes_count = 0;
@@ -182,15 +184,11 @@ void udpReceiverController::readRgbImage(){
         }else if(size_read == 1 && bytes_count == m_image_data_size ){
 
             m_is_reading_image = false;
-            m_image_ready = true;
             bytes_count = 0;
 
-            uint8_t* image_pointer = (uint8_t*)malloc(m_image_data_size);
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
             emit imageRgbReadyToShow(image_pointer, m_image_height, m_image_width, m_image_channels, m_detections, m_timestamp);
-            memset(m_image_buffer,0,m_image_data_size);
 
-            //m_image_buffer = NULL;
             m_image_detections = 0;
 
         }else if(size_read > 0 && m_is_reading_image){
@@ -220,6 +218,7 @@ void udpReceiverController::readRgbImage(){
 
     free(buffer);
     free(m_image_buffer);
+    free(image_pointer);
 }
 
 void udpReceiverController::readPointcloud(){

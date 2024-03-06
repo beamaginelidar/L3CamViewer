@@ -107,6 +107,11 @@ private:
 
     static void errorNotification(int const *error);
 
+    void enableThermalSettingsForVersion(QString l3cam_version);
+
+    int32_t getValueForOldLibrary(int index);
+
+
 public slots:
 
     void updateSensorError(int32_t error);
@@ -423,6 +428,10 @@ private slots:
 
     void pointSelectedNotification(QString data);
 
+    void on_comboBox_thermal_pipeline_currentIndexChanged(int index);
+
+    void on_checkBox_enable_udp_temperatures_clicked(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
@@ -555,7 +564,9 @@ private:
     bool m_blurring_loaded;
     bool m_apply_blurring;
 
-    bool dev_initialized;
+    bool m_dev_initialized;
+    bool m_new_thermal_library;
+    bool m_initializing_thermal_settings;
 
 };
 

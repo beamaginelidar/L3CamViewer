@@ -315,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
@@ -1606,15 +1606,15 @@ QGroupBox {
     </widget>
     <widget class="QWidget" name="tab_2D_Sensors">
      <attribute name="title">
-      <string>2D Sensors</string>
+      <string>ECON + POL + THER</string>
      </attribute>
      <widget class="QGroupBox" name="groupBoxThermalSettings">
       <property name="geometry">
        <rect>
         <x>740</x>
         <y>10</y>
-        <width>266</width>
-        <height>281</height>
+        <width>281</width>
+        <height>291</height>
        </rect>
       </property>
       <property name="font">
@@ -1637,323 +1637,346 @@ QGroupBox {
 }</string>
       </property>
       <property name="title">
-       <string>Thermal Settings</string>
+       <string>THERMAL </string>
       </property>
-      <widget class="QCheckBox" name="checkBox_enable_temp_filter">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>80</y>
-         <width>121</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Enable Filter</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>40</y>
-         <width>241</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
-        <item>
-         <widget class="QLabel" name="label_thermal_color">
-          <property name="minimumSize">
-           <size>
-            <width>20</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Color Mode:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="comboBox_thermal_color">
-          <property name="minimumSize">
-           <size>
-            <width>150</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-           </font>
-          </property>
-          <item>
-           <property name="text">
-            <string>WHITE</string>
+      <layout class="QVBoxLayout" name="verticalLayout_19">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_thermal_color">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>BLACK</string>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>30</height>
+            </size>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>IRON</string>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
            </property>
-          </item>
-          <item>
            <property name="text">
-            <string>COOL</string>
+            <string>Color Mode:</string>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>AMBER </string>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_thermal_color">
+           <property name="minimumSize">
+            <size>
+             <width>150</width>
+             <height>0</height>
+            </size>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>INDIGO</string>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>TYRIAN</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>GLORY</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>ENVY</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>WHITE_NEW</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>BLACK_NEW</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>SPECTRA  </string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>PRISM</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>TYRIAN_NEW</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>AMBER_NEW</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>IRON_NEW</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>HI </string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>HILO</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>110</y>
-         <width>246</width>
-         <height>161</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QLabel" name="label_min_temp">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>MIN</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinBox_min_temperature">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="suffix">
-               <string> ºC</string>
-              </property>
-              <property name="minimum">
-               <number>-40</number>
-              </property>
-              <property name="maximum">
-               <number>200</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="QLabel" name="label_max_temp">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>MAX</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinBox_max_temperature">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="suffix">
-               <string> ºC</string>
-              </property>
-              <property name="minimum">
-               <number>-40</number>
-              </property>
-              <property name="maximum">
-               <number>200</number>
-              </property>
-              <property name="value">
-               <number>50</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_apply_thermal_filter">
-          <property name="font">
-           <font>
-            <pointsize>11</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Apply</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_42">
-          <item>
-           <widget class="QLabel" name="label_protocol_th">
+           <item>
             <property name="text">
-             <string>Protocol</string>
+             <string>WHITE</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBox_th_protocol">
-            <property name="minimumSize">
-             <size>
-              <width>114</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>9999</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <item>
-             <property name="text">
-              <string>RAW UDP</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>GSTREAMER</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_set_th_protocol">
-            <property name="maximumSize">
-             <size>
-              <width>55</width>
-              <height>16777215</height>
-             </size>
-            </property>
+           </item>
+           <item>
             <property name="text">
-             <string>SET</string>
+             <string>BLACK</string>
             </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_get_thermal_pipeline">
-          <property name="text">
-           <string>Get  pipeline</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+           </item>
+           <item>
+            <property name="text">
+             <string>IRON</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>COOL</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>AMBER </string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>INDIGO</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>TYRIAN</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>GLORY</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>ENVY</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>WHITE_NEW</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>BLACK_NEW</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>SPECTRA  </string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>PRISM</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>TYRIAN_NEW</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>AMBER_NEW</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>IRON_NEW</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>HI </string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>HILO</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_13">
+         <item>
+          <widget class="QLabel" name="label_thermal_pipeline">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Pipeline:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_thermal_pipeline">
+           <item>
+            <property name="text">
+             <string>Lite</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Legacy</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>SeekVision</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_enable_temp_filter">
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Enable Filter</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <widget class="QLabel" name="label_min_temp">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>MIN</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_min_temperature">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
+               <property name="suffix">
+                <string> ºC</string>
+               </property>
+               <property name="minimum">
+                <number>-40</number>
+               </property>
+               <property name="maximum">
+                <number>200</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <item>
+              <widget class="QLabel" name="label_max_temp">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>MAX</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_max_temperature">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
+               <property name="suffix">
+                <string> ºC</string>
+               </property>
+               <property name="minimum">
+                <number>-40</number>
+               </property>
+               <property name="maximum">
+                <number>200</number>
+               </property>
+               <property name="value">
+                <number>50</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_apply_thermal_filter">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Apply</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_42">
+           <item>
+            <widget class="QLabel" name="label_protocol_th">
+             <property name="text">
+              <string>Protocol</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_th_protocol">
+             <property name="minimumSize">
+              <size>
+               <width>114</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>9999</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <item>
+              <property name="text">
+               <string>RAW UDP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>GSTREAMER</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_set_th_protocol">
+             <property name="maximumSize">
+              <size>
+               <width>55</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>SET</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_get_thermal_pipeline">
+           <property name="text">
+            <string>Get  pipeline</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_enable_udp_temperatures">
+         <property name="text">
+          <string>Enable UDP Temperatures</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QGroupBox" name="groupBoxEconRGBSettings">
       <property name="geometry">

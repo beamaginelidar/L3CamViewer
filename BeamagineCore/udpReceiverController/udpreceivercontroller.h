@@ -144,7 +144,6 @@ private:
 
     bool m_is_pointcloud_ready;
     bool m_read_pointcloud;
-    bool m_image_ready;
     bool m_is_reading_image;
     bool m_read_image ;
     bool m_is_reading_pointcloud;

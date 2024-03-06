@@ -51,7 +51,7 @@
 //! @param  device The device to execute the function
 //! @param  colormap The desired colormap
 //! @return 0 if OK otherwise Error, check error definition
-int CHANGE_THERMAL_CAMERA_COLORMAP(l3cam device, thermalTypes colormap);
+int CHANGE_THERMAL_CAMERA_COLORMAP(l3cam device, int32_t colormap);
 
 //! @brief  Enables/disables the temperature filter of the thermal image
 //! @param  device The device to execute the function
@@ -65,6 +65,19 @@ int ENABLE_THERMAL_CAMERA_TEMPERATURE_FILTER(l3cam device, bool enabled);
 //! @param  max_temperature Max value in ºC to show -40ºC to 200ºC
 //! @return 0 if OK otherwise Error, check error definition
 int CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(l3cam device, float min_temperature, float max_temperature);
+
+//! @brief  Changes the thermal imaging pipeline mode
+//! @param  device The device to execute the function
+//! @param  pipeline Pipeline to use, 0-Lite 1-Legacy 2-Seek
+//! @return 0 if OK otherwise Error, check error definition
+int CHANGE_THERMAL_PIPELINE(l3cam device, int32_t pipeline);
+
+//! @brief  Enables/Disables sending the temperature data over UDP
+//! @param  device The device to execute the function
+//! @param  enabled Boolean to enable/disable temperature data sending
+//! @return 0 if OK otherwise Error, check error definition
+int ENABLE_THERMAL_TEMPERATURE_DATA_UDP(l3cam device, bool enabled);
+
 
 #ifdef __cplusplus
     }
