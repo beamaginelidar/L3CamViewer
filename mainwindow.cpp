@@ -691,7 +691,7 @@ void MainWindow::on_comboBox_thermal_color_currentIndexChanged(int index)
         value = getValueForOldLibrary(index);
     }
 
-    error = CHANGE_THERMAL_CAMERA_COLORMAP(m_devices[0], (int32_t)index);
+    error = CHANGE_THERMAL_CAMERA_COLORMAP(m_devices[0], value);
 
     if(error != L3CAM_OK){
         addMessageToLogWindow("Error changing thermal colormap - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), logType::error);

@@ -1,6 +1,16 @@
-[25/09/2023] 1.1.2
+## [08/03/2024] 1.1.3
 
-++Added
+## Added
+
++ Support for new library version 0.1.17R
++ Functions to enable the udp temperatures over UDP
++ Code to read YUV_422 images from allied cameras
++ Support for thermal camera commands when device has SW version lower than 2.2.9
++ Support for new thermal pipeline mode and new colormaps
+
+## [25/09/2023] 1.1.2
+
+### Added
 + Support for Windows tested
 + Reorganization of udp class that reads data streaming 
 + Libraries needed to compile in Windows
@@ -8,10 +18,10 @@
 + Ui elements to show the l3cam device information (ip address, serial number and software version)
 + the not configured sensors will be shown in grey color for devices with version 2.2.6 and higher
 
---Removed
-- Unused l3cam library erros
-- qDebug() messages that are writen in log window
+## Removed
++ Unused l3cam library erros
++ qDebug() messages that are writen in log window
 
-**Fixed errors
+## Fixed errors
 
-Known bugs
+## Known bugs

@@ -100,6 +100,8 @@ private:
 
     void readRgbImage();
 
+    void readThermalData();
+
     int initializeSocket();
 
 protected:
@@ -130,6 +132,7 @@ private:
     int m_image_data_size;
     int m_error_code;
 
+    float *m_temperatures_pointer;
     uint32_t m_timestamp;
 
     int32_t m_pointcloud_size;

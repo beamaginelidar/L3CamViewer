@@ -221,6 +221,59 @@ void udpReceiverController::readRgbImage(){
     free(image_pointer);
 }
 
+void udpReceiverController::readThermalData()
+{
+    m_temperatures_pointer = NULL;
+    int bytes_count = 0;
+    int float_pointer_cnt;
+    socklen_t socket_len = sizeof(m_socket);
+    char *buffer;
+    buffer = (char*)malloc(8000);
+    m_is_reading_image = false;
+
+    m_image_height = 1000;
+    m_image_width = 1000;
+
+    m_image_data_size = m_image_height * m_image_width * m_image_channels * sizeof(float);
+
+    m_temperatures_pointer = (float*)malloc(m_image_data_size);
+
+    while (1)
+    {
+        int size_read = recvfrom(m_socket_descriptor, buffer, 8000, 0, (struct sockaddr *)&m_socket, &socket_len);
+
+        if (size_read == 9) // Header
+        {
+            memcpy(&m_image_height, &buffer[1], 2);
+            memcpy(&m_image_width, &buffer[3], 2);
+            memcpy(&m_timestamp, &buffer[5], 4);
+
+
+            m_image_data_size = m_image_height * m_image_width * sizeof(float);
+
+            m_is_reading_image = true;
+            bytes_count = 0;
+            float_pointer_cnt = 0;
+        }
+        else if (size_read == 1) // End, send image
+        {
+            m_is_reading_image = false;
+            bytes_count = 0;
+            float_pointer_cnt = 0;
+
+            //saveBinaryThermalData(thermal_data_pointer, m_image_data_size, m_timestamp);
+        }
+        else if (size_read > 0 && m_is_reading_image)
+        {
+            memcpy(&m_temperatures_pointer[float_pointer_cnt], buffer, size_read);
+            bytes_count += size_read;
+            float_pointer_cnt += (size_read / 4);
+        }
+    }
+
+    free(m_temperatures_pointer);
+}
+
 void udpReceiverController::readPointcloud(){
 
     int points_received = 1;
