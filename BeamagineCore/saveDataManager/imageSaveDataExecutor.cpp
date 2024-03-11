@@ -178,6 +178,17 @@ void imageSaveDataExecutor::doSavePointerToPng(uint8_t *image_pointer, uint16_t 
     free(image_buffer);
 }
 
+void imageSaveDataExecutor::doSaveFloatData(float *buffer_data, int buffer_size, QString file_name)
+{
+    m_is_available = false;
+
+    float *data_buffer = (float*)malloc(buffer_size);
+    memcpy(data_buffer, buffer_data, buffer_size);
+    imageSaveDataExecutorSaveFloatBufferRequest *request = new imageSaveDataExecutorSaveFloatBufferRequest(data_buffer, buffer_size, file_name);
+    QCoreApplication::postEvent(this, request);
+    free(data_buffer);
+}
+
 void imageSaveDataExecutor::run()
 {
     m_available_timer = new QTimer();
@@ -222,6 +233,9 @@ void imageSaveDataExecutor::customEvent(QEvent *event)
     }
     else if(imageSaveDataExecutorSavePointerToPngRequest *p_event = dynamic_cast<imageSaveDataExecutorSavePointerToPngRequest*>(event)){
         onSavePointerToPng(p_event);
+    }
+    else if(imageSaveDataExecutorSaveFloatBufferRequest *p_event = dynamic_cast<imageSaveDataExecutorSaveFloatBufferRequest*>(event)){
+        onSaveFloatPointer(p_event);
     }
 }
 
@@ -467,6 +481,41 @@ void imageSaveDataExecutor::savePointerToPng(uint8_t *image_pointer, uint16_t wi
 }
 
 void imageSaveDataExecutor::sendSavePointerToPngResponse()
+{
+    imageSaveDataExecutorSavePointerToPngResponse *response = new imageSaveDataExecutorSavePointerToPngResponse(m_full_path_saved);
+    sendEvent(response->TYPE,response);
+}
+
+void imageSaveDataExecutor::onSaveFloatPointer(imageSaveDataExecutorSaveFloatBufferRequest *request)
+{
+    int size_to_save = request->getBufferSize();
+
+    float *data_buffer = (float*)malloc(size_to_save);
+    memcpy(data_buffer, request->getBuffer(), size_to_save);
+
+    saveFloatPointer(data_buffer, size_to_save, request->getFileName());
+
+    free(data_buffer);
+    request->releaseMemory();
+
+    m_is_available = true;
+    sendSaveFloatBufferResponse();
+
+}
+
+void imageSaveDataExecutor::saveFloatPointer(float *data_buffer, int size_to_save, QString file_name)
+{
+    QString final_name = m_path_to_save_images + file_name + ".bin";
+
+    FILE *file_handler = std::fopen(final_name.toStdString().c_str(), "wb");
+
+    //! write all data to file
+    std::fwrite(data_buffer, size_to_save, 1, file_handler);
+
+    std::fclose(file_handler);
+}
+
+void imageSaveDataExecutor::sendSaveFloatBufferResponse()
 {
     imageSaveDataExecutorSavePointerToPngResponse *response = new imageSaveDataExecutorSavePointerToPngResponse(m_full_path_saved);
     sendEvent(response->TYPE,response);

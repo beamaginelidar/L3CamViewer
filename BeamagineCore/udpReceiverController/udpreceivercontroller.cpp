@@ -49,6 +49,7 @@ udpReceiverController::udpReceiverController(QObject *parent) : QObject(parent)
     m_read_rgb = false;
     m_read_pointcloud = false;
     m_error_code = 0;
+    m_read_temperatures = false;
 
     m_event_handlers.clear();
 
@@ -77,6 +78,11 @@ void udpReceiverController::doReadPointcloud(bool read)
 void udpReceiverController::doReadImageRgb(bool read)
 {
     m_read_rgb = read;
+}
+
+void udpReceiverController::doReadTemperatures(bool read)
+{
+    m_read_temperatures = read;
 }
 
 void udpReceiverController::startController()
@@ -118,6 +124,9 @@ void udpReceiverController::run()
         }
         else if(m_read_rgb){
             readRgbImage();
+        }
+        else if(m_read_temperatures){
+            readThermalData();
         }
     }else{
         qDebug()<<"Error initializing UDP receiving socket"<<m_error_code;
@@ -225,7 +234,7 @@ void udpReceiverController::readThermalData()
 {
     m_temperatures_pointer = NULL;
     int bytes_count = 0;
-    int float_pointer_cnt;
+    int float_pointer_cnt = 0;
     socklen_t socket_len = sizeof(m_socket);
     char *buffer;
     buffer = (char*)malloc(8000);
@@ -234,7 +243,7 @@ void udpReceiverController::readThermalData()
     m_image_height = 1000;
     m_image_width = 1000;
 
-    m_image_data_size = m_image_height * m_image_width * m_image_channels * sizeof(float);
+    m_image_data_size = m_image_height * m_image_width  * sizeof(float);
 
     m_temperatures_pointer = (float*)malloc(m_image_data_size);
 
@@ -261,7 +270,7 @@ void udpReceiverController::readThermalData()
             bytes_count = 0;
             float_pointer_cnt = 0;
 
-            //saveBinaryThermalData(thermal_data_pointer, m_image_data_size, m_timestamp);
+            emit temperatureDataReceived(m_temperatures_pointer, m_image_height, m_image_width, m_timestamp);
         }
         else if (size_read > 0 && m_is_reading_image)
         {

@@ -315,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
@@ -4651,8 +4651,11 @@ QGroupBox {
                <property name="suffix">
                 <string> mm</string>
                </property>
+               <property name="minimum">
+                <number>1500</number>
+               </property>
                <property name="maximum">
-                <number>200000</number>
+                <number>300000</number>
                </property>
               </widget>
              </item>
@@ -4710,10 +4713,10 @@ QGroupBox {
                 <string> mm</string>
                </property>
                <property name="maximum">
-                <number>200000</number>
+                <number>300000</number>
                </property>
                <property name="value">
-                <number>5000</number>
+                <number>200000</number>
                </property>
               </widget>
              </item>
@@ -5051,7 +5054,7 @@ QGroupBox {
         <x>138</x>
         <y>50</y>
         <width>20</width>
-        <height>241</height>
+        <height>301</height>
        </rect>
       </property>
       <property name="orientation">
@@ -5062,7 +5065,7 @@ QGroupBox {
       <property name="geometry">
        <rect>
         <x>670</x>
-        <y>310</y>
+        <y>370</y>
         <width>341</width>
         <height>30</height>
        </rect>
@@ -5178,7 +5181,7 @@ QGroupBox {
         <x>20</x>
         <y>80</y>
         <width>991</width>
-        <height>206</height>
+        <height>251</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_24">
@@ -5230,6 +5233,27 @@ QGroupBox {
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="label_thermal_save_2">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Thermal Binary </string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QLabel" name="label_pointcloud_save_2">
            <property name="minimumSize">
             <size>
@@ -5243,7 +5267,7 @@ QGroupBox {
             </font>
            </property>
            <property name="text">
-            <string>RGB</string>
+            <string>RGB </string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -5285,7 +5309,7 @@ QGroupBox {
             </font>
            </property>
            <property name="text">
-            <string>Allied Wide</string>
+            <string>Allied Wide </string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -5306,7 +5330,7 @@ QGroupBox {
             </font>
            </property>
            <property name="text">
-            <string>Allied Narrow</string>
+            <string>Allied Narrow </string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -5393,6 +5417,48 @@ QGroupBox {
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_save_thermal">
+             <property name="minimumSize">
+              <size>
+               <width>30</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
+           <item>
+            <widget class="QCheckBox" name="checkBox_save_thermal_data">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit_save_thermal_bin_path">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_save_thermal_bin">
              <property name="minimumSize">
               <size>
                <width>30</width>
@@ -5620,7 +5686,7 @@ QGroupBox {
       <property name="geometry">
        <rect>
         <x>560</x>
-        <y>314</y>
+        <y>374</y>
         <width>101</width>
         <height>23</height>
        </rect>
@@ -5633,7 +5699,7 @@ QGroupBox {
       <property name="geometry">
        <rect>
         <x>910</x>
-        <y>360</y>
+        <y>420</y>
         <width>100</width>
         <height>100</height>
        </rect>

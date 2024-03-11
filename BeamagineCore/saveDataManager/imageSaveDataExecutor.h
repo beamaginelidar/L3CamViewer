@@ -93,6 +93,8 @@ public:
 
     void doSavePointerToPng(uint8_t* image_pointer, uint16_t width, uint16_t height, uint8_t channels, QString file_name);
 
+    void doSaveFloatData(float *buffer_data, int buffer_size, QString file_name);
+
 signals:
 
     void executorIsAvailable(bool available);
@@ -177,6 +179,11 @@ private:
 
     void sendSavePointerToPngResponse();
 
+    void onSaveFloatPointer(imageSaveDataExecutorSaveFloatBufferRequest *request);
+
+    void saveFloatPointer(float *data_buffer, int size_to_save, QString file_name);
+
+    void sendSaveFloatBufferResponse();
     
 
 private:

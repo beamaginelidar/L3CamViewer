@@ -4,7 +4,8 @@
 
 typedef enum saveDataTypes{
      images = 0,
-     pointcloud
+     pointcloud,
+     binaryFloat
 }saveDataTypes;
 
 typedef struct imageData{
@@ -18,7 +19,13 @@ typedef struct imageData{
 
 typedef struct pointcloudData{
     uint32_t timestamp;
-    uint16_t pointcloud_size;
+    uint32_t pointcloud_size;
     int32_t *pointcloud_buffer;
 }pointcloudData;
+
+typedef struct binaryFloatData{
+    uint32_t timestamp;
+    uint32_t data_size;
+    float *data_buffer;
+}binaryFloatData;
 

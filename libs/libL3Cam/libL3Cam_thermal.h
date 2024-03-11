@@ -70,13 +70,13 @@ int CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(l3cam device, float min_temperature
 //! @param  device The device to execute the function
 //! @param  pipeline Pipeline to use, 0-Lite 1-Legacy 2-Seek
 //! @return 0 if OK otherwise Error, check error definition
-int CHANGE_THERMAL_PIPELINE(l3cam device, int32_t pipeline);
+int CHANGE_THERMAL_CAMERA_PROCESSING_PIPELINE(l3cam device, int32_t pipeline);
 
 //! @brief  Enables/Disables sending the temperature data over UDP
 //! @param  device The device to execute the function
 //! @param  enabled Boolean to enable/disable temperature data sending
 //! @return 0 if OK otherwise Error, check error definition
-int ENABLE_THERMAL_TEMPERATURE_DATA_UDP(l3cam device, bool enabled);
+int ENABLE_THERMAL_CAMERA_TEMPERATURE_DATA_UDP(l3cam device, bool enabled);
 
 
 #ifdef __cplusplus

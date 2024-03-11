@@ -64,6 +64,8 @@ public:
 
     void doReadImageRgb(bool read);
 
+    void doReadTemperatures(bool read);
+
     //! @brief  Starts the thread
     //! @param  none
     //! @return none
@@ -83,6 +85,8 @@ signals:
     void imageReadyToShow(uint8_t* image_data, uint16_t heigth, uint16_t width);
 
     void imageRgbReadyToShow(uint8_t* image_data, uint16_t heigth, uint16_t width, uint8_t channels, std::vector<detectionImage> detections, uint32_t timestamp);
+
+    void temperatureDataReceived(float *temperature_data, uint16_t height, uint16_t width, uint32_t timestamp);
 
     void pointcloudReadyToShow(int32_t *pointcloud_data, uint32_t timestamp);
 
@@ -151,6 +155,7 @@ private:
     bool m_read_image ;
     bool m_is_reading_pointcloud;
     bool m_read_rgb;
+    bool m_read_temperatures;
     bool m_is_reading_detections;
 };
 

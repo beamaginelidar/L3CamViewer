@@ -51,6 +51,8 @@ public:
 
     void doSavePointCloudToBin(int32_t *data_buffer, int32_t number_of_points, uint32_t time_stamp);
 
+    void doSaveFloatDataToBin(float *data_buffer, int buffer_size, uint32_t time_stamp);
+
     void setDataTypeToSave(uint8_t data_type);
 
     void setExecutorAvailable(bool available);
@@ -60,6 +62,8 @@ signals:
     void sendPointCloudToSave(pointcloudData data);
 
     void sendImageToSave(imageData data);
+
+    void sendBufferToSave(binaryFloatData data);
 
 public slots:
 
@@ -81,11 +85,17 @@ private:
 
     void onSavePointerToPng( saveDataManagerSavePointerToPngRequest *request);
 
-    void savePointerToPng(uint8_t *image_pointer, uint16_t width, uint16_t height, uint8_t channels, uint32_t time_stamp);
-
     void onSavePointCloudToBin( saveDataManagerSavePointCloudToBinRequest *request);
 
+    void onSaveFloatBuffer(saveDataManagerSaveFloatBufferRequest *request);
+
     void savePointCloudToBin(int32_t *data_buffer, int32_t number_of_points, uint32_t time_stamp);
+
+    void savePointerToPng(uint8_t *image_pointer, uint16_t width, uint16_t height, uint8_t channels, uint32_t time_stamp);
+
+    void saveFloatBuffer(float *buffer, int buffer_size, uint32_t time_stamp);
+
+
 
 private:
 
@@ -96,6 +106,7 @@ private:
 
     QQueue<imageData> m_images_queue;
     QQueue<pointcloudData> m_pointcloud_queue;
+    QQueue<binaryFloatData> m_float_binary_queue;
 
     QTimer *m_check_sender_timer;
     int m_sender_timer_time_ms;

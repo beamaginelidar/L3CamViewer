@@ -38,6 +38,7 @@ SOURCES += \
         BeamagineCore/saveDataManager/pointCloudSaveDataExecutorMessages.cpp \
         BeamagineCore/saveDataManager/saveDataManager.cpp \
         BeamagineCore/saveDataManager/saveDataManagerMessages.cpp \
+        imageviewerform.cpp \
         main.cpp \
         mainwindow.cpp
 
@@ -54,9 +55,11 @@ HEADERS += \
         BeamagineCore/saveDataManager/saveDataManagerMessages.h \
         BeamagineCore/saveDataManager/saveDataStructs.h \
         BeamagineCore/beam_aux.h \
+        imageviewerform.h \
         mainwindow.h
 
 FORMS += \
+        imageviewerform.ui \
         mainwindow.ui
 
 INCLUDEPATH += \

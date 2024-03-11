@@ -131,6 +131,38 @@ private:
     QString m_file_path;
 };
 
+class imageSaveDataExecutorSaveFloatBufferRequest : public QEvent{
+public:
+    imageSaveDataExecutorSaveFloatBufferRequest(float *buffer_data, int buffer_size, QString file_name) : QEvent((QEvent::Type)(QEvent::registerEventType())){
+        m_file_name = file_name;
+        m_buffer_size = buffer_size;
+        m_buffer = (float*)malloc(buffer_size);
+        memcpy(m_buffer, buffer_data, buffer_size);
+    }
+    static const QEvent::Type TYPE;
+    float *getBuffer(){return m_buffer;}
+    int getBufferSize(){return m_buffer_size;}
+    QString getFileName(){return m_file_name;}
+    void releaseMemory(){free(m_buffer);}
+
+private:
+    float *m_buffer;
+    int m_buffer_size;
+    QString m_file_name;
+};
+
+class imageSaveDataExecutorSaveFloatBufferResponse : public QEvent{
+public:
+    imageSaveDataExecutorSaveFloatBufferResponse(QString file_path) : QEvent((QEvent::Type)(QEvent::registerEventType())){
+        m_file_path = file_path;
+    }
+    static const QEvent::Type TYPE;
+    QString  getFilePath(){return m_file_path;}
+
+private:
+    QString m_file_path;
+};
+
 class imageSaveDataExecutorSaveDataPngStokesRequest : public QEvent {
 public:
 

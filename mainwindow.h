@@ -41,6 +41,7 @@
 #include "libL3Cam_allied.h"
 #include "beamagine.h"
 #include "beamErrors.h"
+#include "imageviewerform.h"
 
 #include <udpreceivercontroller.h>
 #include <saveDataManager.h>
@@ -210,6 +211,8 @@ private slots:
 
     void imageThermalReadyToShow(uint8_t* image_data, uint16_t height, uint16_t width, uint8_t channels, std::vector<detectionImage> detections, uint32_t timestamp);
 
+    void temperatureDataReady(float *temperature_data, uint16_t height, uint16_t width, uint32_t timestamp);
+
     void on_pushButton_set_th_protocol_clicked();
 
     void on_pushButton_get_thermal_pipeline_clicked();
@@ -370,6 +373,8 @@ private slots:
 
     void thermalSaveExecutorIsAvailable(bool available);
 
+    void thermalDataSaveExecutorAvailable(bool available);
+
     void rgbSaveExecutorIsAvailable(bool available);
 
     void pointcloudSaveExecutorIsAvailable(bool available);
@@ -377,6 +382,8 @@ private slots:
     void polSaveExecutorIsAvailable(bool available);
 
     void thermalImageToSaveReceived(imageData data);
+
+    void thermalDataBufferToSaveReceived(binaryFloatData data);
 
     void rgbImageToSaveReceived(imageData data);
 
@@ -432,16 +439,26 @@ private slots:
 
     void on_checkBox_enable_udp_temperatures_clicked(bool checked);
 
+    void on_checkBox_save_thermal_data_clicked(bool checked);
+
+    void on_pushButton_save_thermal_bin_clicked();
+
 private:
     Ui::MainWindow *ui;
+
+    imageViewerForm *m_temperatures_viewer;
 
     udpReceiverController *m_rgb_image_reader;
     udpReceiverController *m_thermal_image_reader;
     udpReceiverController *m_pointcloud_reader;
     udpReceiverController *m_rgb_pol_image_reader;
+    udpReceiverController *m_temperatures_reader;
 
     saveDataManager* m_save_thermal_image_manager;
     imageSaveDataExecutor *m_save_thermal_image_executor;
+
+    saveDataManager* m_save_thermal_data_manager;
+    imageSaveDataExecutor *m_save_thermal_data_executor;
 
     saveDataManager* m_save_rgb_image_manager;
     imageSaveDataExecutor *m_save_rgb_image_executor;
@@ -480,6 +497,7 @@ private:
     QString m_green_button_style;
 
     QString m_path_to_save_thermal;
+    QString m_path_to_save_thermal_bin;
     QString m_path_to_save_pol;
     QString m_path_to_save_pointcloud;
     QString m_path_to_save_rgb;
@@ -528,6 +546,7 @@ private:
     int16_t m_save_pol_counter;
     int16_t m_save_wide_counter;
     int16_t m_save_narrow_counter;
+    int16_t m_save_thermal_data_counter;
 
     uint8_t m_current_allied_camera;
 
@@ -556,6 +575,7 @@ private:
     bool m_save_rgb_image;
     bool m_save_wide_image;
     bool m_save_narrow_image;
+    bool m_save_thermal_data_image;
 
     bool m_save_data;
 

@@ -41,6 +41,7 @@ Q_DECLARE_METATYPE(std::vector<detectionImage>)
 Q_DECLARE_METATYPE(pointcloudData)
 Q_DECLARE_METATYPE(imageData)
 Q_DECLARE_METATYPE(uint32_t)
+Q_DECLARE_METATYPE(binaryFloatData)
 
 #include <QSpinBox>
 
@@ -101,6 +102,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_thermal_image_reader = new udpReceiverController();
     m_pointcloud_reader = new udpReceiverController();
     m_rgb_pol_image_reader = new udpReceiverController();
+    m_temperatures_reader = new udpReceiverController();
 
     m_rgb_port = 6020;
     m_thermal_port = 6030;
@@ -118,9 +120,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_save_rgb_image = false;
     m_save_wide_image = false;
     m_save_narrow_image = false;
+    m_save_thermal_data_image = false;
 
     m_save_thermal_image_executor = new imageSaveDataExecutor();
     m_save_thermal_image_manager = new saveDataManager();
+
+    m_save_thermal_data_manager = new saveDataManager();
+    m_save_thermal_data_executor = new imageSaveDataExecutor();
 
     m_save_rgb_image_manager = new saveDataManager();
     m_save_rgb_image_executor = new imageSaveDataExecutor();
@@ -131,10 +137,16 @@ MainWindow::MainWindow(QWidget *parent) :
     m_save_polarimetric_manager = new saveDataManager();
     m_save_polarimetric_executor = new imageSaveDataExecutor();
 
+    m_temperatures_viewer = new imageViewerForm();
+
+    m_temperatures_viewer->setWindowTitle("Thermal data");
+
     m_save_thermal_image_manager->setDataTypeToSave(images);
     m_save_rgb_image_manager->setDataTypeToSave(images);
     m_save_pointcloud_manager->setDataTypeToSave(pointcloud);
     m_save_polarimetric_manager->setDataTypeToSave(images);
+
+    m_save_thermal_data_manager->setDataTypeToSave(binaryFloat);
 
 
     qRegisterMetaType<uint16_t>("uint16_t");
@@ -144,6 +156,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<std::vector<detectionImage> >("std::vector<detectionImage>");
     qRegisterMetaType<pointcloudData>("pointcloudData");
     qRegisterMetaType<imageData>("imageData");
+    qRegisterMetaType<binaryFloatData>("binaryFloatData");
 
     connect(m_pointcloud_reader, SIGNAL(pointcloudReadyToShow(int32_t*,uint32_t)), this, SLOT(pointCloudReadyToShow(int32_t*,uint32_t)));
 
@@ -153,11 +166,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_thermal_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)),
             this, SLOT(imageThermalReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)));
 
+    connect(m_temperatures_reader, SIGNAL(temperatureDataReceived(float*,uint16_t,uint16_t,uint32_t)),
+            this, SLOT(temperatureDataReady(float*,uint16_t,uint16_t,uint32_t)));
+
     connect(m_rgb_pol_image_reader, SIGNAL(imageRgbReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)),
             this, SLOT(imageRgbPolReadyToShow(uint8_t*,uint16_t,uint16_t,uint8_t,std::vector<detectionImage>,uint32_t)));
 
     connect(m_save_thermal_image_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(thermalSaveExecutorIsAvailable(bool)));
     connect(m_save_thermal_image_manager, SIGNAL(sendImageToSave(imageData)), this, SLOT(thermalImageToSaveReceived(imageData)));
+
+    connect(m_save_thermal_data_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(thermalDataSaveExecutorAvailable(bool)));
+    connect(m_save_thermal_data_manager, SIGNAL(sendBufferToSave(binaryFloatData)), this, SLOT(thermalDataBufferToSaveReceived(binaryFloatData)));
 
     connect(m_save_rgb_image_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(rgbSaveExecutorIsAvailable(bool)));
     connect(m_save_rgb_image_manager, SIGNAL(sendImageToSave(imageData)), this, SLOT(rgbImageToSaveReceived(imageData)));
@@ -168,11 +187,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_save_polarimetric_executor, SIGNAL(executorIsAvailable(bool)), this, SLOT(polSaveExecutorIsAvailable(bool)));
     connect(m_save_polarimetric_manager, SIGNAL(sendImageToSave(imageData)), this, SLOT(polImageToSaveReceived(imageData)));
 
+    m_temperatures_viewer->hide();
+
     m_save_data = false;
     m_save_images_counter = 0;
     m_save_images_rgb_counter = 0;
     m_save_pointcloud_counter = 0;
     m_save_thermal_counter = 0;
+    m_save_thermal_data_counter = 0;
     m_save_pol_counter = 0;
     m_save_wide_counter = 0;
     m_save_narrow_counter = 0;
@@ -184,6 +206,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     m_path_to_save_thermal = QDir::homePath() + "/";
+    m_path_to_save_thermal_bin = QDir::homePath() + "/";
     m_path_to_save_pol = QDir::homePath() + "/";
     m_path_to_save_pointcloud = QDir::homePath() + "/";
     m_path_to_save_rgb = QDir::homePath() + "/";
@@ -425,6 +448,15 @@ void MainWindow::initializeReceivers()
         m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
         m_save_thermal_image_manager->startController();
         m_save_thermal_image_executor->startController();
+
+        m_save_thermal_data_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
+        m_save_thermal_data_manager->startController();
+        m_save_thermal_data_executor->startController();
+
+        m_temperatures_reader->setIpAddress(m_server_address);
+        m_temperatures_reader->setPort(6031);
+        m_temperatures_reader->doReadTemperatures(true);
+        m_temperatures_reader->startController();
     }
 }
 
@@ -469,6 +501,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
             ui->label_l3cam_status->setStyleSheet(m_status_undefined_style);
 
             event->accept();
+
+            if(m_temperatures_viewer->isVisible()){
+                m_temperatures_viewer->close();
+            }
         }
         else {
             event->ignore();
@@ -476,7 +512,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     else{
         event->accept();
+
+        if(m_temperatures_viewer->isVisible()){
+            m_temperatures_viewer->close();
+        }
     }
+
+
 }
 
 void MainWindow::on_pushButton_getVersion_clicked()
@@ -1227,6 +1269,42 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
     image_to_show.release();
 }
 
+void MainWindow::temperatureDataReady(float *temperature_data, uint16_t height, uint16_t width, uint32_t timestamp)
+{
+    if(m_device_started){
+
+        if(m_save_data && m_save_thermal_data_image){
+
+            if(m_save_thermal_data_counter > 0 || m_save_all){
+
+                int buff_size = height * width * sizeof(float);
+                float *temp_buff = (float*)malloc(buff_size);
+                memcpy(temp_buff, temperature_data, buff_size);
+
+                m_save_thermal_data_manager->doSaveFloatDataToBin(temp_buff, buff_size, timestamp);
+
+                free(temp_buff);
+
+                if(!m_save_all){
+                    m_save_thermal_data_counter--;
+                    checkAllFramesSaved();
+                }
+            }
+        }
+
+        cv::Mat float_image = cv::Mat(height, width, CV_32FC1, temperature_data);
+        cv::Mat uchar_image;
+        float_image.convertTo(uchar_image, CV_8U);
+        cv::cvtColor(uchar_image, uchar_image, cv::COLOR_GRAY2RGB);
+
+        cv::resize(uchar_image, uchar_image, cv::Size(620,460));
+
+        QImage image = QImage((uchar*) uchar_image.data, uchar_image.cols, uchar_image.rows, uchar_image.step,  QImage::Format_RGB888);
+
+        m_temperatures_viewer->showImage(image);
+    }
+}
+
 void MainWindow::on_pushButton_set_th_protocol_clicked()
 {
     streamingProtocols protocol;
@@ -1368,6 +1446,7 @@ void MainWindow::enableSaveConfiguration()
     ui->lineEdit_save_rgb_path->setText(m_path_to_save_rgb);
     ui->lineEdit_save_wide_path->setText(m_path_to_save_wide);
     ui->lineEdit_save_narrow_path->setText(m_path_to_save_narrow);
+    ui->lineEdit_save_thermal_bin_path->setText(m_path_to_save_thermal_bin);
 
     ui->lineEdit_save_pointcloud_path->setEnabled(m_save_data);
     ui->lineEdit_save_pol_path->setEnabled(m_save_data);
@@ -1375,6 +1454,7 @@ void MainWindow::enableSaveConfiguration()
     ui->lineEdit_save_rgb_path->setEnabled(m_save_data);
     ui->lineEdit_save_wide_path->setEnabled(m_save_data);
     ui->lineEdit_save_narrow_path->setEnabled(m_save_data);
+    ui->lineEdit_save_thermal_bin_path->setEnabled(m_save_data);
 
     ui->pushButton_save_thermal->setEnabled(m_save_data);
     ui->pushButton_save_pol->setEnabled(m_save_data);
@@ -1382,6 +1462,8 @@ void MainWindow::enableSaveConfiguration()
     ui->pushButton_save_rgb->setEnabled(m_save_data);
     ui->pushButton_save_wide->setEnabled(m_save_data);
     ui->pushButton_save_narrow->setEnabled(m_save_data);
+    ui->pushButton_save_thermal_bin->setEnabled(m_save_data);
+
 }
 
 void MainWindow::changeSaveDataSettings()
@@ -1391,6 +1473,13 @@ void MainWindow::changeSaveDataSettings()
         ui->lineEdit_save_thermal_path->setDisabled(m_save_data);
         ui->pushButton_save_thermal->setDisabled(m_save_data);
     }
+
+    if(m_save_thermal_data_image){
+        ui->checkBox_save_thermal_data->setDisabled(m_save_data);
+        ui->lineEdit_save_thermal_bin_path->setDisabled(m_save_data);
+        ui->pushButton_save_thermal_bin->setDisabled(m_save_data);
+    }
+
     if(m_save_pol_image){
         m_path_to_save_pol = ui->lineEdit_save_pol_path->text();
         ui->lineEdit_save_pol_path->setDisabled(m_save_data);
@@ -1431,7 +1520,7 @@ void MainWindow::changeSaveDataSettings()
 void MainWindow::checkAllFramesSaved()
 {
     if((m_save_images_rgb_counter == 0) && (m_save_pointcloud_counter == 0) && (m_save_thermal_counter == 0) &&
-            (m_save_pol_counter == 0) && (m_save_narrow_counter == 0) && (m_save_wide_counter == 0)){
+            (m_save_pol_counter == 0) && (m_save_narrow_counter == 0) && (m_save_wide_counter == 0) && (m_save_thermal_data_counter == 0)){
         on_pushButton_save_clicked();
     }
 }
@@ -1595,7 +1684,7 @@ void MainWindow::initializeSystemStatus()
     updateSensorStatus(m_allied_wide_status, ui->label_allied_wide_status_value);
     updateSensorStatus(m_allied_narrow_status, ui->label_allied_narrow_status_value);
 
-    ui->radioButton_wide_camera->setEnabled(m_allied_wide_sensor != NULL);
+    ui->radioButton_wide_camera->setEnabled(m_allied_wide_sensor != NULL);{}
     ui->radioButton_narrow_camera->setEnabled(m_allied_narrow_sensor != NULL);
     if(m_allied_wide_sensor == NULL && m_allied_narrow_sensor != NULL){
         ui->radioButton_narrow_camera->click();
@@ -1813,7 +1902,11 @@ void MainWindow::on_pushButton_apply_color_ranges_clicked()
         m_min_distance = min_value;
     }
 
-    CHANGE_POINT_CLOUD_COLOR_RANGE(m_devices[0], min_value, max_value);
+    int error = CHANGE_POINT_CLOUD_COLOR_RANGE(m_devices[0], min_value, max_value);
+
+    if(error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
 }
 
 void MainWindow::on_pushButton_set_lidar_protocol_clicked()
@@ -2605,6 +2698,13 @@ void MainWindow::thermalSaveExecutorIsAvailable(bool available)
     }
 }
 
+void MainWindow::thermalDataSaveExecutorAvailable(bool available)
+{
+    if(m_save_data && m_save_thermal_data_image){
+        m_save_thermal_data_manager->setExecutorAvailable(available);
+    }
+}
+
 void MainWindow::rgbSaveExecutorIsAvailable(bool available)
 {
     if(m_save_data && (m_save_rgb_image || m_save_narrow_image)){
@@ -2632,6 +2732,14 @@ void MainWindow::thermalImageToSaveReceived(imageData data)
     QString file_name = QString("%1").arg(data.timestamp);
     m_save_thermal_image_executor->doSavePointerToPng(data.image_buffer, data.image_width, data.image_height, data.image_channels, file_name);
     free(data.image_buffer);
+}
+
+void MainWindow::thermalDataBufferToSaveReceived(binaryFloatData data)
+{
+    QString file_name = QString("%1").arg(data.timestamp);
+
+    m_save_thermal_data_executor->doSaveFloatData(data.data_buffer, data.data_size, file_name);
+    free(data.data_buffer);
 }
 
 void MainWindow::rgbImageToSaveReceived(imageData data)
@@ -2669,7 +2777,7 @@ void MainWindow::on_checkBox_blur_faces_clicked(bool checked)
 void MainWindow::on_pushButton_save_clicked()
 {
     if(!m_save_rgb_image && !m_save_pointcloud && !m_save_thermal_image &&
-            !m_save_pol_image && !m_save_wide_image && !m_save_narrow_image)
+            !m_save_pol_image && !m_save_wide_image && !m_save_narrow_image && !m_save_thermal_data_image)
     {
         m_save_data = false;
         return;
@@ -2677,39 +2785,53 @@ void MainWindow::on_pushButton_save_clicked()
 
     m_save_data = !m_save_data;
 
-    if(ui->checkBox_save_pointcloud->isChecked()){
-        m_save_pointcloud_executor->setPathToSavePcd(ui->lineEdit_save_pointcloud_path->text());
-    }
-    if(ui->checkBox_save_thermal->isChecked()){
-        m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
-    }
-    if(ui->checkBox_save_rgb->isChecked()){
-        m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_rgb_path->text());
-    }
-    if(ui->checkBox_save_pol->isChecked()){
-        m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_pol_path->text());
-    }
-    if(ui->checkBox_save_wide->isChecked()){
-        m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_wide_path->text());
-    }
-    if(ui->checkBox_save_narrow->isChecked()){
-        m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_narrow_path->text());
-    }
-
     if(m_save_data){
+
+        if(ui->checkBox_save_pointcloud->isChecked()){
+            m_save_pointcloud_executor->setPathToSavePcd(ui->lineEdit_save_pointcloud_path->text());
+        }
+
+        if(ui->checkBox_save_thermal->isChecked()){
+            m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
+        }
+
+        if(ui->checkBox_save_thermal_data->isChecked()){
+            m_save_thermal_data_executor->setPathToSaveImages(ui->lineEdit_save_thermal_bin_path->text());
+        }
+
+        if(ui->checkBox_save_rgb->isChecked()){
+            m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_rgb_path->text());
+        }
+
+        if(ui->checkBox_save_pol->isChecked()){
+            m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_pol_path->text());
+        }
+
+        if(ui->checkBox_save_wide->isChecked()){
+            m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_wide_path->text());
+        }
+
+        if(ui->checkBox_save_narrow->isChecked()){
+            m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_narrow_path->text());
+        }
+
 
         m_save_images_counter = ui->spinBox_save_counter->value();
 
-        m_save_images_rgb_counter = (m_save_rgb_image ? m_save_images_counter : 0);
-        m_save_pointcloud_counter = (m_save_pointcloud ? m_save_images_counter : 0);
-        m_save_thermal_counter = (m_save_thermal_image ? m_save_images_counter : 0);
-        m_save_pol_counter = (m_save_pol_image ? m_save_images_counter : 0);
-        m_save_wide_counter = (m_save_wide_image ? m_save_images_counter : 0);
-        m_save_narrow_counter = (m_save_narrow_image ? m_save_images_counter : 0);
-
         if(m_save_images_counter < 0){
             m_save_all = true;
+
+        }else{
+
+            m_save_images_rgb_counter = (m_save_rgb_image ? m_save_images_counter : 0);
+            m_save_pointcloud_counter = (m_save_pointcloud ? m_save_images_counter : 0);
+            m_save_thermal_counter = (m_save_thermal_image ? m_save_images_counter : 0);
+            m_save_thermal_data_counter = (m_save_thermal_data_image ? m_save_images_counter : 0);
+            m_save_pol_counter = (m_save_pol_image ? m_save_images_counter : 0);
+            m_save_wide_counter = (m_save_wide_image ? m_save_images_counter : 0);
+            m_save_narrow_counter = (m_save_narrow_image ? m_save_images_counter : 0);
         }
+
 
     }
 
@@ -3115,7 +3237,7 @@ void MainWindow::on_comboBox_thermal_pipeline_currentIndexChanged(int index)
         return;
     }
 
-    int error = CHANGE_THERMAL_PIPELINE(m_devices[0], (int32_t) index);
+    int error = CHANGE_THERMAL_CAMERA_PROCESSING_PIPELINE(m_devices[0], (int32_t) index);
     if(error != L3CAM_OK){
         addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
     }
@@ -3123,8 +3245,30 @@ void MainWindow::on_comboBox_thermal_pipeline_currentIndexChanged(int index)
 
 void MainWindow::on_checkBox_enable_udp_temperatures_clicked(bool checked)
 {
-    int error = ENABLE_THERMAL_TEMPERATURE_DATA_UDP(m_devices[0], checked);
+    int error = ENABLE_THERMAL_CAMERA_TEMPERATURE_DATA_UDP(m_devices[0], checked);
     if(error != L3CAM_OK){
         addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
     }
+
+    ui->checkBox_save_thermal_data->setEnabled(checked);
+
+    if(checked){
+        m_temperatures_viewer->show();
+    }else{
+        m_temperatures_viewer->hide();
+    }
+}
+
+void MainWindow::on_checkBox_save_thermal_data_clicked(bool checked)
+{
+    m_save_thermal_data_image = checked;
+
+    ui->lineEdit_save_thermal_bin_path->setEnabled(m_save_thermal_data_image);
+    ui->pushButton_save_thermal_bin->setEnabled(m_save_thermal_data_image);
+}
+
+void MainWindow::on_pushButton_save_thermal_bin_clicked()
+{
+    setPathToSaveData(ui->lineEdit_save_thermal_bin_path);
+    m_save_thermal_data_executor->setPathToSaveImages(ui->lineEdit_save_thermal_bin_path->text());
 }
