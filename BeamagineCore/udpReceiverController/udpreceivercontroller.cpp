@@ -249,8 +249,11 @@ void udpReceiverController::readThermalData()
 
     while (1)
     {
+#ifdef _WIN32
+        int size_read = recvfrom(m_udp_socket, buffer, 8000, 0, (struct sockaddr*)&m_socket, &socket_len);
+#else
         int size_read = recvfrom(m_socket_descriptor, buffer, 8000, 0, (struct sockaddr *)&m_socket, &socket_len);
-
+#endif
         if (size_read == 9) // Header
         {
             memcpy(&m_image_height, &buffer[1], 2);
