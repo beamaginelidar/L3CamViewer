@@ -1108,24 +1108,21 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2BGR);
-        }else if(channels == 2){
+        }
+        else if(channels == 2){
             image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
         }
+
         cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
+
+        if(m_blurring_loaded && m_apply_blurring){
+            applyFaceBlurring(image_to_show);
+        }
 
         if(!detections.empty()){
             drawDetections(image_to_show, detections, 30);
@@ -1172,19 +1169,20 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2RGB);
+            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2BGR);
         }
         else if(channels == 2){
             image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
+        }
+
+        cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
+
+        if(m_blurring_loaded && m_apply_blurring){
+            applyFaceBlurring(image_to_show);
         }
 
         if(!detections.empty()){
