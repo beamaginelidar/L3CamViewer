@@ -52,6 +52,7 @@ LIST OF BEAMAGINE ERRORS
 
 //!LIDAR ERRORS
 #define ERROR_APD_CURRENT_NOT_DEFINED           100
+#define L3CAM_ERROR_APD_CURRENT_SIZE            101
 #define ERROR_LIDAR_TIMED_OUT                   172
 
 #define L3CAM_TIMEOUT_ERROR                     210

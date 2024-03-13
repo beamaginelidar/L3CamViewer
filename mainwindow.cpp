@@ -1115,32 +1115,27 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
         }else if(channels == 2){
             image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
         }
+
         cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
 
-        if(!detections.empty()){
-            drawDetections(image_to_show, detections, 30);
+        if(m_blurring_loaded && m_apply_blurring){
+            applyFaceBlurring(image_to_show);
         }
 
         if(m_save_data && (m_save_rgb_image || m_save_narrow_image)){
 
             if(m_save_images_rgb_counter > 0 || m_save_narrow_counter > 0 || m_save_all){
 
-                int buff_size = sizeof(uint8_t)*height*width*channels;
+                int buff_size = sizeof(uint8_t)*height*width*3;
                 uint8_t *temp_buf = (uint8_t*)malloc(buff_size);
 
                 memcpy(temp_buf, (uint8_t*)image_to_show.data, buff_size*sizeof(uint8_t));
 
-                m_save_rgb_image_manager->doSavePointerToPng(temp_buf, width, height, channels, timestamp);
+                m_save_rgb_image_manager->doSavePointerToPng(temp_buf, width, height, 3, timestamp);
 
                 free(temp_buf);
 
@@ -1150,6 +1145,10 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
                     checkAllFramesSaved();
                 }
             }
+        }
+
+        if(!detections.empty()){
+            drawDetections(image_to_show, detections, 30);
         }
 
         cv::resize(image_to_show, image_to_show, cv::Size(600,400));
@@ -1172,34 +1171,34 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2RGB);
+            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_GRAY2BGR);
         }
         else if(channels == 2){
             image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
             cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
-            if(m_blurring_loaded && m_apply_blurring){
-                applyFaceBlurring(image_to_show);
-            }
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
         }
 
-        if(!detections.empty()){
-            drawDetections(image_to_show, detections, 30);
+        cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
+
+
+        if(m_blurring_loaded && m_apply_blurring){
+            applyFaceBlurring(image_to_show);
         }
+
         
         if(m_save_data && (m_save_pol_image || m_save_wide_image)){
 
             if(m_save_pol_counter > 0 || m_save_wide_counter > 0 || m_save_all){
                 
-                int buff_size = sizeof(uint8_t)*height*width*channels;
+                //!Always save the rgb image
+                int buff_size = sizeof(uint8_t)*height*width*3;
                 uint8_t *temp_buf = (uint8_t*)malloc(buff_size);
-                memcpy(temp_buf, image_data, buff_size*sizeof(uint8_t));
+                memcpy(temp_buf, (uint8_t*)image_to_show.data, buff_size*sizeof(uint8_t));
 
-                m_save_polarimetric_manager->doSavePointerToPng(temp_buf, width, height, channels, timestamp);
+                m_save_polarimetric_manager->doSavePointerToPng(temp_buf, width, height, 3, timestamp);
 
                 free(temp_buf);
 
@@ -1210,6 +1209,10 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
                 }
             }
 
+        }
+
+        if(!detections.empty()){
+            drawDetections(image_to_show, detections, 30);
         }
 
         cv::resize(image_to_show, image_to_show, cv::Size(600,400));

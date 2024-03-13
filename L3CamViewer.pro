@@ -122,43 +122,47 @@ INCLUDEPATH += 'D:/OpenCV/opencv/build/include/'
 LIBS += -L"$$PWD/libs/opencv4/" -lopencv_world440
 
 #PCL
-INCLUDEPATH += 'C:/Program Files/PCL 1.9.1/include/pcl-1.9/' \
-               'C:/Program Files/PCL 1.9.1/3rdParty/Eigen/eigen3' \
-               'C:/Program Files/PCL 1.9.1/3rdParty/VTK/include/vtk-8.1' \
-               'C:/Program Files/PCL 1.9.1/3rdParty/Boost/include/boost-1_68' \
-               'C:/Program Files/PCL 1.9.1/3rdParty/FLANN/include/'
+PCL_BASE_PATH = "D:/PCL_1.13.1/PCL 1.13.1/"
 
-LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/boost/" -llibboost_system-vc141-mt-x64-1_68 \
-        -llibboost_filesystem-vc141-mt-x64-1_68 \
-        -llibboost_thread-vc141-mt-x64-1_68 \
-        -llibboost_date_time-vc141-mt-x64-1_68 \
-        -llibboost_iostreams-vc141-mt-x64-1_68 \
-        -llibboost_serialization-vc141-mt-x64-1_68 \
-        -llibboost_chrono-vc141-mt-x64-1_68 \
-        -llibboost_atomic-vc141-mt-x64-1_68 \
-        -llibboost_regex-vc141-mt-x64-1_68
+INCLUDEPATH += $$PCL_BASE_PATH"/include/pcl-1.13/" \
+               $$PCL_BASE_PATH"/3rdParty/Eigen/eigen3" \
+               $$PCL_BASE_PATH"/3rdParty/VTK/include/vtk-9.2" \
+               $$PCL_BASE_PATH"/3rdParty/Boost/include/boost-1_82" \
+               $$PCL_BASE_PATH"/3rdParty/FLANN/include/"
 
-LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/qhull/" -lqhullstatic
+LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/3rdParty/boost/" -llibboost_atomic-vc143-mt-x64-1_82\
+        -llibboost_chrono-vc143-mt-x64-1_82 \
+        -llibboost_date_time-vc143-mt-x64-1_82 \
+        -llibboost_filesystem-vc143-mt-x64-1_82 \
+        -llibboost_iostreams-vc143-mt-x64-1_82 \
+        -llibboost_regex-vc143-mt-x64-1_82 \
+        -llibboost_serialization-vc143-mt-x64-1_82 \
+        -llibboost_system-vc143-mt-x64-1_82 \
+        -llibboost_thread-vc143-mt-x64-1_82
 
-LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/openni/" -lOpenNI2
+LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/3rdParty/qhull/" -lqhullstatic
 
-LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/flann/" -lflann_cpp_s
+LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/3rdParty/openni/" -lOpenNI2
 
-LIBS += -L"$$PWD/libs/pcl-1.9.1/3rdParty/vtk/" -lvtkCommonCore-8.1 \
-        -lvtkRenderingCore-8.1 \
-        -lvtkCommonDataModel-8.1 \
-        -lvtkCommonMath-8.1 \
-        -lvtkRenderingLOD-8.1 \
-        -lvtkCommonExecutionModel-8.1 \
-        -lvtkRenderingFreeType-8.1 \
-        -lvtksys-8.1 \
-        -lvtkCommonTransforms-8.1 \
-        -lvtkCommonColor-8.1 \
-        -lvtkCommonSystem-8.1 \
-        -lvtkCommonMisc-8.1
+LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/3rdParty/flann/" -lflann_cpp_s
 
-LIBS += -L"$$PWD/libs/pcl-1.9.1/pcl-1.9/" -lpcl_visualization_release \
-        -lpcl_common_release
+LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/3rdParty/vtk/"   -lvtkCommonColor-9.2 \
+        -lvtkCommonCore-9.2 \
+        -lvtkCommonDataModel-9.2 \
+        -lvtkCommonExecutionModel-9.2 \
+        -lvtkCommonMath-9.2 \
+        -lvtkCommonMisc-9.2 \
+        -lvtkCommonSystem-9.2 \
+        -lvtkCommonTransforms-9.2 \
+        -lvtkRenderingCore-9.2 \
+        -lvtkRenderingFreeType-9.2 \
+        -lvtkRenderingLOD-9.2 \
+        -lvtksys-9.2 \
+
+
+LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/pcl-1.13/"  -lpcl_common \
+        -lpcl_visualization
+
 
 
 #LibL3cam
