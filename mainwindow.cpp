@@ -2574,7 +2574,7 @@ void MainWindow::on_actionAbout_triggered()
     QString appVersion = "<p>L3Cam Viewer version " + qApp->applicationVersion() + ".</p>";
     QString libVersion = "<p>Library libL3Cam version " + QString(GET_VERSION()) + ".</p>";
     QString qtVersion =  "<p>Compiled against Qt open source version " + QString(qVersion()) + ".</p>";
-    QString copyright =  "<p>Copyright (c) 2023 Beamagine.</p>";
+    QString copyright =  "<p>Copyright (c) 2024 Beamagine.</p>";
     QString more =       "<p>For more info visit <a href='https://beamagine.com/'>beamagine.com</a> or contact us at <a href='mailto:info@beamagine.com'>info@beamagine.com</a>.</p>";
 
     QString msg = appVersion + libVersion + qtVersion + copyright + more;

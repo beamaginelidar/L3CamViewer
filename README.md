@@ -61,7 +61,7 @@ sudo apt install libqt5core5a libqt5gui5 libqt5network5 libqt5widgets5 libqt5pri
 Clone this repository in your workspace (e.g. workspace):
 
 ```
-cd ~/workspace && git clone https://github.com/beamaginelidar/libL3CamTest
+cd ~/workspace && git clone https://github.com/beamaginelidar/L3CamViewer
 ```
 
 ## Operational Advice
@@ -78,7 +78,7 @@ ip a | grep mtu
 
 You should increase the MTU to `9000` to allow jumbo frames. If you use Network Manager, this can be done by opening the network interface settings and editing the "MTU" box under the "Identity" tab.
 
-See the "Linux host configuration" section of the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf) for full details.
+See the "Linux host configuration" section of the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual%20v1.8.pdf) for full details.
 
 ### Receive Buffer Size
 
@@ -163,7 +163,7 @@ In this tab the user is able to:
 + Device information such as the IP address, the serial number and the software version.
 + Change the RTSP streaming pipelines for each sensor.
 
-### 2D Sensors
+### ECON + POL + THER 
 This tab includes the configuration parameters for the Econ RGB camera, the Polarimetric camera (mono or RGB-P) and the thermal camera.
 
 + Change the available parameters of the econ RGB Camera
@@ -177,6 +177,7 @@ This tab is dedicated to the allied camera parameters. If the wide camera and th
 + Change the available allied camera parameters
 + Change streaming protocol (UDP, RTSP over gstreamer)
 + Get current camera streaming pipeline.
+
 ### LiDAR Settings
 This tab includes the parameters related to the LiDAR and the 3D visualization settings.\
 For the visualization settings:
@@ -189,8 +190,9 @@ For the LiDAR settings:
 + Remote points filter, allows to select a minimum and maximum distance for the point cloud.
 + Bias, behaves as the gain of a camera, high BIAS value means more range but also more noise, low BIAS means less range and less noise.
 + Change the streaming protocol (UDP, RTSP over gstreamer). The RTSP is only by custom request, if you need it please contact us.
+
 ### Data Collection
-This tab is to save the images and the point clouds. The point clouds are saved in a custom binary format and the images are saved in png format.\
+This tab is to save the images, thermal raw data and the point clouds. The point clouds are saved in a custom binary format, the images are saved in png format and the thermal raw data in binary files.\
 The name of the files work as a timestamp with the format **hhmmsszzz.ext**.\
 For example, an image captured at 14:25:42:501 will have the name 142542501.png
 

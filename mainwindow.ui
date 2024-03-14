@@ -315,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
@@ -529,6 +529,7 @@
       </property>
       <property name="font">
        <font>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -560,6 +561,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -592,6 +594,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -624,6 +627,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -656,6 +660,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -688,6 +693,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -720,6 +726,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -752,6 +759,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -784,6 +792,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -816,6 +825,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -848,6 +858,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -880,6 +891,7 @@ QGroupBox {
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -1067,6 +1079,7 @@ QGroupBox {
       </property>
       <property name="font">
        <font>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1203,6 +1216,7 @@ QGroupBox {
       </property>
       <property name="font">
        <font>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1606,6 +1620,7 @@ QGroupBox {
       <property name="font">
        <font>
         <pointsize>11</pointsize>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1975,6 +1990,7 @@ QGroupBox {
       <property name="font">
        <font>
         <pointsize>11</pointsize>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -2559,6 +2575,7 @@ QGroupBox {
       <property name="font">
        <font>
         <pointsize>11</pointsize>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4240,6 +4257,7 @@ QGroupBox {
       </property>
       <property name="font">
        <font>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4264,6 +4282,7 @@ QGroupBox {
          <property name="font">
           <font>
            <family>Ubuntu</family>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4406,6 +4425,7 @@ QGroupBox {
          <property name="font">
           <font>
            <family>Ubuntu</family>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4551,6 +4571,7 @@ QGroupBox {
       </property>
       <property name="font">
        <font>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4579,6 +4600,7 @@ QGroupBox {
              <property name="font">
               <font>
                <family>Ubuntu</family>
+               <weight>75</weight>
                <bold>true</bold>
               </font>
              </property>
@@ -4756,6 +4778,7 @@ QGroupBox {
              <property name="font">
               <font>
                <family>Ubuntu</family>
+               <weight>75</weight>
                <bold>true</bold>
               </font>
              </property>
@@ -5141,6 +5164,7 @@ QGroupBox {
       <property name="font">
        <font>
         <pointsize>11</pointsize>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -5644,6 +5668,7 @@ QGroupBox {
       <property name="font">
        <font>
         <pointsize>11</pointsize>
+        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -5824,8 +5849,8 @@ QGroupBox {
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>135</width>
-      <height>72</height>
+      <width>159</width>
+      <height>75</height>
      </rect>
     </property>
     <property name="sizePolicy">
