@@ -4,7 +4,7 @@ All notable changes to the L3CamViewer application will be documented in this fi
 
 ## [08/03/2024] 1.1.3
 
-## Added
+### Added
 
 - Support for new library version 0.1.17R
 - Functions to enable the udp temperatures over UDP
