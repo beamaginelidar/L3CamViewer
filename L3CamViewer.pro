@@ -73,53 +73,76 @@ INCLUDEPATH += \
 # TODO: Modify INCLUDEPATH to match your environment
 unix {
 
+OS_INFO = $$system(lsb_release -rs)
+
 #OPENCV
 INCLUDEPATH += $(HOME)/openCV4.5.5/install/include/opencv4/ \
 
-LIBS += -L$$PWD/libs/opencv4/ \
+LIBS += -L$(HOME)/openCV4.5.5/install/lib/ \
     -lopencv_core \
     -lopencv_highgui \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
     -lopencv_dnn
 
-#PCL
-INCLUDEPATH += $(HOME)/pcl-1.9.0/libs/include/pcl-1.9 \
-               /usr/include/eigen3/ \
-               /usr/include/vtk-7.1/
+equals(OS_INFO, 20.04):{
+    #PCL
+    INCLUDEPATH += $(HOME)/pcl-1.9.0/libs/include/pcl-1.9 \
+                   /usr/include/eigen3/ \
+                   /usr/include/vtk-7.1/
 
 
-LIBS += -L$$PWD/libs/pcl-1.9.0 \
-    -lpcl_common \
-    -lpcl_io \
-    -lpcl_visualization \
-    -lpcl_kdtree \
-    -lpcl_io \
-    -lpcl_io_ply
+    LIBS += -L$$PWD/libs/pcl-1.9.0 \
+        -lpcl_common \
+        -lpcl_io \
+        -lpcl_visualization \
+        -lpcl_kdtree \
+        -lpcl_io_ply
 
-LIBS += -lboost_system \
-    -lvtkCommonCore-7.1 \
-    -lvtkRenderingCore-7.1 \
-    -lvtkCommonDataModel-7.1 \
-    -lvtkCommonMath-7.1 \
-    -lvtkRenderingLOD-7.1 \
-    -lvtkCommonExecutionModel-7.1 \
-    -lvtkRenderingFreeType-7.1
+    LIBS += -lboost_system \
+        -lvtkCommonCore-7.1 \
+        -lvtkRenderingCore-7.1 \
+        -lvtkCommonDataModel-7.1 \
+        -lvtkCommonMath-7.1 \
+        -lvtkRenderingLOD-7.1 \
+        -lvtkCommonExecutionModel-7.1 \
+        -lvtkRenderingFreeType-7.1
+    }
 
-#LibL3cam
-#LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
+equals(OS_INFO, 22.04){
 
-#INCLUDEPATH += $$PWD/libs/libL3Cam
-#DEPENDPATH += $$PWD/libs/libL3Cam
+    #PCL
+    INCLUDEPATH += $(HOME)/pcl-1.13/install/include/pcl-1.13 \
+                   /usr/include/eigen3/ \
+                   /usr/include/vtk-9.1/
 
-#PRE_TARGETDEPS += $$PWD/libs/libL3Cam/libL3Cam.a
 
+    LIBS += -L$$PWD/libs/pcl-1.13.1/Ubuntu22/ \
+        -lpcl_common \
+        -lpcl_io \
+        -lpcl_visualization \
+        -lpcl_kdtree \
+        -lpcl_io_ply
+
+    LIBS += -lboost_system \
+        -lvtkCommonCore-9.1 \
+        -lvtkRenderingCore-9.1 \
+        -lvtkCommonDataModel-9.1 \
+        -lvtkCommonMath-9.1 \
+        -lvtkRenderingLOD-9.1 \
+        -lvtkCommonExecutionModel-9.1 \
+        -lvtkRenderingFreeType-9.1
+    }
+
+
+#LibL3Cam
 LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
 
 INCLUDEPATH += $$PWD/libs/libL3Cam
 DEPENDPATH += $$PWD/libs/libL3Cam
 
 PRE_TARGETDEPS += $$PWD/libs/libL3Cam/libL3Cam.a
+
 }
 
 win32{
