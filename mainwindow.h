@@ -112,6 +112,7 @@ private:
 
     int32_t getValueForOldLibrary(int index);
 
+    void initializePointCloudSelector();
 
 public slots:
 
@@ -142,8 +143,6 @@ private slots:
     void on_checkBox_rgb_white_bal_clicked(bool checked);
 
     void on_checkBox_rgb_exp_clicked(bool checked);
-
-    //void on_checkBox_enable_double_clicked(bool checked);
 
     void on_pushButton_set_rgb_protocol_clicked();
 
@@ -192,16 +191,6 @@ private slots:
     void on_pushButton_start_device_clicked();
 
     void on_pushButton_start_streaming_clicked();
-
-    void on_radioButton_range3D_clicked(bool checked);
-
-    void on_radioButton_range3DZ_clicked(bool checked);
-
-    void on_radioButton_intensity_clicked(bool checked);
-
-    void on_radioButton_fusion_thermal_clicked(bool checked);
-
-    void on_radioButton_fusion_mono_clicked(bool checked);
 
     void pointCloudReadyToShow(int32_t* pointcloud_data, uint32_t timestamp);
 
@@ -339,10 +328,6 @@ private slots:
 
     void on_pushButton_get_allied_pipeline_clicked();
 
-    void on_pushButton_long_range_clicked();
-
-    void on_pushButton_short_range_clicked();
-
     void on_actionAbout_triggered();
 
     void on_comboBox_background_currentIndexChanged(int index);
@@ -425,11 +410,11 @@ private slots:
 
     void on_checkBox_auto_bias_clicked(bool checked);
 
-    void on_horizontalSlider_bias_valueChanged(int value);
+    void on_horizontalSlider_bias_right_valueChanged(int value);
 
     void on_horizontalSlider_bias_left_valueChanged(int value);
 
-    void on_horizontalSlider_bias_sliderReleased();
+    void on_horizontalSlider_bias_right_sliderReleased();
 
     void on_horizontalSlider_bias_left_sliderReleased();
 
@@ -442,6 +427,18 @@ private slots:
     void on_checkBox_save_thermal_data_clicked(bool checked);
 
     void on_pushButton_save_thermal_bin_clicked();
+
+    void on_pushButton_get_autobias_right_clicked();
+
+    void on_pushButton_send_autobias_right_clicked();
+
+    void on_pushButton_get_autobias_left_clicked();
+
+    void on_pushButton_send_autobias_left_clicked();
+
+    void on_checkBox_autobias_short_range_clicked(bool checked);
+
+    void on_comboBox_pointcloud_color_currentIndexChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
@@ -511,6 +508,8 @@ private:
     float m_pol_exposure;
     float m_pol_auto_exposure_min;
     float m_pol_auto_exposure_max;
+
+    int m_current_point_cloud_color;
 
     int m_rgb_contrast;
     int m_rgb_brightness;
@@ -587,6 +586,8 @@ private:
     bool m_dev_initialized;
     bool m_new_thermal_library;
     bool m_initializing_thermal_settings;
+
+    bool m_econ_wide_connected;
 
 };
 

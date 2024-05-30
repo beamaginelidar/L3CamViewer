@@ -230,6 +230,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->setCurrentIndex(0);
 
     m_initializing_thermal_settings = false;
+
+    m_econ_wide_connected = false;
 }
 
 MainWindow::~MainWindow()
@@ -280,6 +282,10 @@ void MainWindow::deviceDetected()
         case sensor_econ_rgb:
             m_rgb_sensor = &m_sensors[i];
             break;
+        case sensor_econ_wide:
+            m_rgb_sensor = &m_sensors[i];
+            m_econ_wide_connected = true;
+            break;
         case sensor_thermal:
             m_thermal_sensor = &m_sensors[i];
             break;
@@ -298,6 +304,8 @@ void MainWindow::deviceDetected()
     initializeSystemStatus();
 
     initializeReceivers();
+
+    initializePointCloudSelector();
 }
 
 void MainWindow::initializeGUI()
@@ -413,8 +421,6 @@ void MainWindow::initializeReceivers()
 
     if(m_rgb_sensor != NULL || m_allied_narrow_sensor != NULL){
 
-        ui->radioButton_fusion_mono->setEnabled(true);
-
         m_rgb_image_reader->setIpAddress(m_server_address);
         m_rgb_image_reader->setPort(m_rgb_port);
         m_rgb_image_reader->doReadImageRgb(true);
@@ -438,7 +444,6 @@ void MainWindow::initializeReceivers()
     }
 
     if(m_thermal_sensor != NULL){
-        ui->radioButton_fusion_thermal->setEnabled(true);
 
         m_thermal_image_reader->setIpAddress(m_server_address);
         m_thermal_image_reader->setPort(m_thermal_port);
@@ -529,6 +534,12 @@ void MainWindow::on_pushButton_getVersion_clicked()
 
 void MainWindow::on_pushButton_initialize_clicked()
 {
+    if(m_dev_initialized)
+    {
+        addMessageToLogWindow("Library already initialized", logType::warning);
+        return;
+    }
+
     registerErrorCallback(errorNotification);
     int error = L3CAM_OK;
 
@@ -610,6 +621,10 @@ void MainWindow::on_pushButton_sensors_clicked()
         case sensor_econ_rgb:
             m_rgb_sensor = &m_sensors[i];
             break;
+        case sensor_econ_wide:
+            m_rgb_sensor = &m_sensors[i];
+            m_econ_wide_connected = true;
+            break;
         case sensor_thermal:
             m_thermal_sensor = &m_sensors[i];
             break;
@@ -629,6 +644,8 @@ void MainWindow::on_pushButton_sensors_clicked()
     initializeSystemStatus();
 
     initializeReceivers();
+
+    initializePointCloudSelector();
 }
 
 void MainWindow::on_pushButton_fast_init_clicked()
@@ -636,11 +653,16 @@ void MainWindow::on_pushButton_fast_init_clicked()
     //!set searching status GUI
     int error = 0;
     registerErrorCallback(errorNotification);
-    error = INITIALIZE(NULL, NULL);
-    addMessageToLogWindow("INITIALIZE - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
 
-    if(!error){
-        m_dev_initialized = true;
+    if(m_dev_initialized){
+        addMessageToLogWindow("Library already initialized", logType::warning);
+    }else{
+        error = INITIALIZE(NULL, NULL);
+        addMessageToLogWindow("INITIALIZE - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+
+        if(!error){
+            m_dev_initialized = true;
+        }
     }
 
     if(error != L3CAM_OK){
@@ -725,7 +747,6 @@ void MainWindow::on_comboBox_thermal_color_currentIndexChanged(int index)
 
     int error = L3CAM_OK;
     int32_t value = 0;
-
 
     if(m_new_thermal_library){
         value = index;
@@ -1014,63 +1035,6 @@ void MainWindow::on_pushButton_start_streaming_clicked()
     ui->horizontalSlider_sharpness_wide->setDisabled(m_device_streaming);
 }
 
-void MainWindow::on_radioButton_range3D_clicked(bool checked)
-{
-    int error = 0;
-    ui->label_max_range->setText("Max distance:");
-    ui->label_min_range->setText("Min distance:");
-    ui->spinBox_max_range->setSuffix(" mm");
-    ui->spinBox_min_range->setSuffix(" mm");
-    if(checked){
-        error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], RAINBOW);
-    }
-    addMessageToLogWindow("change pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
-}
-
-void MainWindow::on_radioButton_range3DZ_clicked(bool checked)
-{
-    int error = 0;
-    ui->label_max_range->setText("Max distance:");
-    ui->label_min_range->setText("Min distance:");
-    ui->spinBox_max_range->setSuffix(" mm");
-    ui->spinBox_min_range->setSuffix(" mm");
-    if(checked){
-        error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], RAINBOW_Z);
-    }
-    addMessageToLogWindow("change pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
-}
-
-void MainWindow::on_radioButton_intensity_clicked(bool checked)
-{
-    int error = 0;
-    if(checked){
-        error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], INTENSITY);
-    }
-    ui->label_max_range->setText("Max intensity:");
-    ui->label_min_range->setText("Min intensity:");
-    ui->spinBox_max_range->setSuffix("");
-    ui->spinBox_min_range->setSuffix("");
-    addMessageToLogWindow("change pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
-}
-
-void MainWindow::on_radioButton_fusion_thermal_clicked(bool checked)
-{
-    int error = 0;
-    if(checked){
-        error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], THERMAL_FUSION);
-    }
-    addMessageToLogWindow("change fusion pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
-}
-
-void MainWindow::on_radioButton_fusion_mono_clicked(bool checked)
-{
-    int error = 0;
-    if(checked){
-        error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], RGB_FUSION);
-    }
-    addMessageToLogWindow("change fusion pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
-}
-
 void MainWindow::pointCloudReadyToShow(int32_t *pointcloud_data, uint32_t timestamp)
 {
     Q_UNUSED(timestamp)
@@ -1112,7 +1076,11 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
         }
         else if(channels == 2){
             image_to_show = cv::Mat(height, width, CV_8UC2, image_data);
-            cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
+            if(m_econ_wide_connected || m_allied_narrow_sensor != NULL){
+                cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_Y422);
+            }else{
+                cv::cvtColor(image_to_show, image_to_show, cv::COLOR_YUV2BGR_YUYV);
+            }
         }
         else if(channels == 3){
             image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
@@ -1399,7 +1367,6 @@ void MainWindow::on_pushButton_narrow_rtsp_clicked()
 
 void MainWindow::drawDetections(cv::Mat &image_to_show, std::vector<detectionImage> detections, uint8_t threshold)
 {
-
     int top, left, width, height;
     int baseline;
 
@@ -1747,6 +1714,12 @@ void MainWindow::errorNotification(const int *error)
 
 void MainWindow::enableThermalSettingsForVersion(QString l3cam_version)
 {
+    if(l3cam_version.isEmpty()){
+        m_new_thermal_library = false;
+        ui->comboBox_thermal_pipeline->setDisabled(true);
+        return;
+    }
+
     //!version is master_a.b.c
     QString ver_num = l3cam_version.split("_")[1];
     QStringList numbers_ver = ver_num.split("."); // a.b.c
@@ -1854,6 +1827,36 @@ int32_t MainWindow::getValueForOldLibrary(int index)
     return value;
 }
 
+void MainWindow::initializePointCloudSelector()
+{
+    ui->comboBox_pointcloud_color->clear();
+
+    ui->comboBox_pointcloud_color->addItem("Range 3D");
+    ui->comboBox_pointcloud_color->addItem("Range 3D Z");
+    ui->comboBox_pointcloud_color->addItem("Intensity");
+
+    if(m_thermal_sensor != NULL){
+        ui->comboBox_pointcloud_color->addItem("FusionThermal");
+    }
+
+    if(m_rgb_sensor != NULL ){
+        ui->comboBox_pointcloud_color->addItem("FusionRGB");
+    }
+
+    if(m_allied_narrow_sensor != NULL){
+        ui->comboBox_pointcloud_color->addItem("FusionNarrow");
+    }
+
+    if(m_allied_wide_sensor!= NULL ){
+        ui->comboBox_pointcloud_color->addItem("FusionWide");
+    }
+
+    if(m_pol_sensor != NULL){
+        ui->comboBox_pointcloud_color->addItem("FusionPol");
+    }
+}
+
+
 void MainWindow::updateSensorError(int32_t error)
 {
     QString msg = "Error notification received: " + QString(getBeamErrorDescription(error)) + " (" + QString().number(error) + ")";
@@ -1887,18 +1890,17 @@ void MainWindow::on_pushButton_apply_filter_clicked()
     }
 }
 
-
 void MainWindow::on_pushButton_apply_color_ranges_clicked()
 {
     int min_value = ui->spinBox_min_range->value();
     int max_value = ui->spinBox_max_range->value();
 
-    if(ui->radioButton_intensity->isChecked()){
-        m_max_intensity = max_value;
-        m_min_intensity = min_value;
-    }else{
+    if(m_current_point_cloud_color == RAINBOW || m_current_point_cloud_color == RAINBOW_Z){
         m_max_distance = max_value;
         m_min_distance = min_value;
+    }else{
+        m_max_intensity = max_value;
+        m_min_intensity = min_value;
     }
 
     int error = CHANGE_POINT_CLOUD_COLOR_RANGE(m_devices[0], min_value, max_value);
@@ -2558,16 +2560,6 @@ void MainWindow::on_pushButton_get_allied_pipeline_clicked()
     }
 }
 
-void MainWindow::on_pushButton_long_range_clicked()
-{
-    SET_BIAS_LONG_RANGE(m_devices[0]);
-}
-
-
-void MainWindow::on_pushButton_short_range_clicked()
-{
-    SET_BIAS_SHORT_RANGE(m_devices[0]);
-}
 
 void MainWindow::on_actionAbout_triggered()
 {
@@ -2692,39 +2684,28 @@ void MainWindow::on_pushButton_save_narrow_clicked()
 
 void MainWindow::thermalSaveExecutorIsAvailable(bool available)
 {
-    if(m_save_data && m_save_thermal_image){
-        m_save_thermal_image_manager->setExecutorAvailable(available);
-    }
+    m_save_thermal_image_manager->setExecutorAvailable(available);
 }
 
 void MainWindow::thermalDataSaveExecutorAvailable(bool available)
 {
-    if(m_save_data && m_save_thermal_data_image){
-        m_save_thermal_data_manager->setExecutorAvailable(available);
-    }
+    m_save_thermal_data_manager->setExecutorAvailable(available);
 }
 
 void MainWindow::rgbSaveExecutorIsAvailable(bool available)
 {
-    if(m_save_data && (m_save_rgb_image || m_save_narrow_image)){
-        m_save_rgb_image_manager->setExecutorAvailable(available);
-    }
+    m_save_rgb_image_manager->setExecutorAvailable(available);
 }
 
 void MainWindow::pointcloudSaveExecutorIsAvailable(bool available)
 {
-    if(m_save_data && m_save_pointcloud){
-        m_save_pointcloud_manager->setExecutorAvailable(available);
-    }
+    m_save_pointcloud_manager->setExecutorAvailable(available);
 }
 
 void MainWindow::polSaveExecutorIsAvailable(bool available)
 {
-    if(m_save_data && (m_save_pol_image || m_save_wide_image)) {
-        m_save_polarimetric_manager->setExecutorAvailable(available);
-    }
+    m_save_polarimetric_manager->setExecutorAvailable(available);
 }
-
 
 void MainWindow::thermalImageToSaveReceived(imageData data)
 {
@@ -2771,7 +2752,6 @@ void MainWindow::on_checkBox_blur_faces_clicked(bool checked)
 {
     m_apply_blurring = checked;
 }
-
 
 void MainWindow::on_pushButton_save_clicked()
 {
@@ -3197,12 +3177,20 @@ void MainWindow::on_pushButton_get_curr_params_clicked()
 void MainWindow::on_checkBox_auto_bias_clicked(bool checked)
 {
     ENABLE_AUTO_BIAS(m_devices[0], checked);
+
+    ui->horizontalSlider_bias_right->setEnabled(!checked);
+    ui->horizontalSlider_bias_left->setEnabled(!checked);
+
+    ui->checkBox_autobias_short_range->setEnabled(checked);
+    ui->pushButton_send_autobias_left->setEnabled(checked);
+    ui->pushButton_send_autobias_right->setEnabled(checked);
+    ui->pushButton_get_autobias_left->setEnabled(checked);
+    ui->pushButton_get_autobias_right->setEnabled(checked);
 }
 
-void MainWindow::on_horizontalSlider_bias_valueChanged(int value)
+void MainWindow::on_horizontalSlider_bias_right_valueChanged(int value)
 {
-    ui->label_bias_value->setText(QString("%1 mV").arg(value));
-
+    ui->label_bias_value_right->setText(QString("%1 mV").arg(value));
 }
 
 void MainWindow::on_horizontalSlider_bias_left_valueChanged(int value)
@@ -3210,19 +3198,26 @@ void MainWindow::on_horizontalSlider_bias_left_valueChanged(int value)
     ui->label_bias_value_left->setText(QString("%1 mV").arg(value));
 }
 
-void MainWindow::on_horizontalSlider_bias_sliderReleased()
+void MainWindow::on_horizontalSlider_bias_right_sliderReleased()
 {
-    int bias = ui->horizontalSlider_bias->value();
-    CHANGE_BIAS_VALUE(m_devices[0], indexTdc::right, bias);
-
+    int bias = ui->horizontalSlider_bias_right->value();
+    int error = CHANGE_BIAS_VALUE(m_devices[0], indexTdc::right, bias);
+    if(error != L3CAM_OK)
+    {
+        QString message = "Error setting bias value "  + QString(" %1 %2 - %3").arg(bias).arg(error).arg(getBeamErrorDescription(error));
+        addMessageToLogWindow(message);
+    }
 }
 
 void MainWindow::on_horizontalSlider_bias_left_sliderReleased()
 {
-
     int bias = ui->horizontalSlider_bias_left->value();
-    CHANGE_BIAS_VALUE(m_devices[0], indexTdc::left, bias);
-
+    int error = CHANGE_BIAS_VALUE(m_devices[0], indexTdc::left, bias);
+    if(error != L3CAM_OK)
+    {
+        QString message = "Error setting bias value "  + QString(" %1 %2 - %3").arg(bias).arg(error).arg(getBeamErrorDescription(error));
+        addMessageToLogWindow(message);
+    }
 }
 
 void MainWindow::pointSelectedNotification(QString data)
@@ -3244,6 +3239,7 @@ void MainWindow::on_comboBox_thermal_pipeline_currentIndexChanged(int index)
 
 void MainWindow::on_checkBox_enable_udp_temperatures_clicked(bool checked)
 {
+
     int error = ENABLE_THERMAL_CAMERA_TEMPERATURE_DATA_UDP(m_devices[0], checked);
     if(error != L3CAM_OK){
         addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
@@ -3256,6 +3252,7 @@ void MainWindow::on_checkBox_enable_udp_temperatures_clicked(bool checked)
     }else{
         m_temperatures_viewer->hide();
     }
+
 }
 
 void MainWindow::on_checkBox_save_thermal_data_clicked(bool checked)
@@ -3271,3 +3268,111 @@ void MainWindow::on_pushButton_save_thermal_bin_clicked()
     setPathToSaveData(ui->lineEdit_save_thermal_bin_path);
     m_save_thermal_data_executor->setPathToSaveImages(ui->lineEdit_save_thermal_bin_path->text());
 }
+
+void MainWindow::on_pushButton_get_autobias_right_clicked()
+{
+    uint8_t gain = 0;
+
+    int error = GET_AUTOBIAS_VALUE(m_devices[0], 1, &gain);
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }else{
+        ui->spinBox_gain_target_right->setValue(gain);
+    }
+}
+
+void MainWindow::on_pushButton_send_autobias_right_clicked()
+{
+    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 1, ui->spinBox_gain_target_right->value());
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+void MainWindow::on_pushButton_get_autobias_left_clicked()
+{
+    uint8_t gain = 0;
+
+    int error = GET_AUTOBIAS_VALUE(m_devices[0], 2, &gain);
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }else{
+        ui->spinBox_gain_target_left->setValue(gain);
+    }
+}
+
+void MainWindow::on_pushButton_send_autobias_left_clicked()
+{
+    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 2, ui->spinBox_gain_target_left->value());
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+void MainWindow::on_checkBox_autobias_short_range_clicked(bool checked)
+{
+    SET_BIAS_SHORT_RANGE(m_devices[0], checked);
+}
+
+void MainWindow::on_comboBox_pointcloud_color_currentIndexChanged(const QString &arg1)
+{
+    int error = 0;
+    int color = RAINBOW;
+
+    if(arg1 == "Range 3D"){
+        ui->label_max_range->setText("Max distance:");
+        ui->label_min_range->setText("Min distance:");
+        ui->spinBox_max_range->setSuffix(" mm");
+        ui->spinBox_min_range->setSuffix(" mm");
+        color = RAINBOW;
+    }
+    else if(arg1 == "Range 3D Z"){
+        ui->label_max_range->setText("Max distance:");
+        ui->label_min_range->setText("Min distance:");
+        ui->spinBox_max_range->setSuffix(" mm");
+        ui->spinBox_min_range->setSuffix(" mm");
+        color = RAINBOW_Z;
+    }
+    else if(arg1 == "Intensity"){
+        ui->label_max_range->setText("Max intensity:");
+        ui->label_min_range->setText("Min intensity:");
+        ui->spinBox_max_range->setSuffix("");
+        ui->spinBox_min_range->setSuffix("");
+        color = INTENSITY;
+    }
+    else if(arg1 == "FusionThermal"){
+        if(m_econ_wide_connected){//!We only have the fish eye thermal when the fish eye rgb is connected
+            color = THERMAL_FE_FUSION;
+        }
+        else{
+            color = THERMAL_FUSION;
+        }
+    }
+    else if(arg1 == "FusionRGB"){
+        if(m_econ_wide_connected){//!fish eye rgb is connected
+            color = RGB_FE_FUSION;
+        }
+        else{
+            color = RGB_FUSION;
+        }
+    }
+    else if(arg1 == "FusionNarrow"){
+        color = ALLIED_NARROW_FUSION;
+    }
+    else if(arg1 == "FusionWide"){
+        color = ALLIED_WIDE_FUSION;
+    }
+    else if(arg1 == "FusionPol"){
+        color = POLARIMETRIC_FUSION;
+    }
+
+    m_current_point_cloud_color = color;
+    error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], color);
+
+    addMessageToLogWindow("change pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
+}
+

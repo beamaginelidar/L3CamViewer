@@ -39,7 +39,8 @@ typedef enum sensorTypes {
     sensor_pol,
     sensor_thermal,
     sensor_allied_narrow,
-    sensor_allied_wide
+    sensor_allied_wide,
+    sensor_econ_wide
 }sensorTypes;
 
 enum imageTypes {
@@ -108,7 +109,9 @@ enum pointCloudColor{
     THERMAL_FUSION,
     RGBT_FUSION,
     ALLIED_NARROW_FUSION = 12,
-    ALLIED_WIDE_FUSION
+    ALLIED_WIDE_FUSION,
+    RGB_FE_FUSION,
+    THERMAL_FE_FUSION
 };
 
 enum alliedCamerasIds{

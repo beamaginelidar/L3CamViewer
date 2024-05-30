@@ -107,6 +107,13 @@ LIBS += -lboost_system \
     -lvtkRenderingFreeType-7.1
 
 #LibL3cam
+#LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
+
+#INCLUDEPATH += $$PWD/libs/libL3Cam
+#DEPENDPATH += $$PWD/libs/libL3Cam
+
+#PRE_TARGETDEPS += $$PWD/libs/libL3Cam/libL3Cam.a
+
 LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
 
 INCLUDEPATH += $$PWD/libs/libL3Cam

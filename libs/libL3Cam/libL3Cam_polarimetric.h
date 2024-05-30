@@ -49,57 +49,57 @@
 
 //! @brief  Restarts de configuration values of the polarimetric cameras
 //! @param  device The device to execute the function
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int SET_POLARIMETRIC_CAMERA_DEFAULT_SETTINGS(l3cam device);
 
 //! @brief  Changes the brightness of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  brightness Value to set in the camera 0 to 255
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_POLARIMETRIC_CAMERA_BRIGHTNESS(l3cam device, int brightness);
 
 //! @brief  Changes the black level of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  black_level Value to set in the camera to 0 to 12.5
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_POLARIMETRIC_CAMERA_BLACK_LEVEL(l3cam device, float black_level);
 
 //! @brief  Changes the gain of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  gain_value Gain to set in the camera 0-48.0 db
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_POLARIMETRIC_CAMERA_GAIN(l3cam device, float gain_value);
 
 //! @brief  Enables/disables the automatic gain of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  enabled boolean to enable/disable the function
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int ENABLE_POLARIMETRIC_CAMERA_AUTO_GAIN(l3cam device, bool enabled);
 
 //! @brief  Changes the gain range of the auto gain parameter of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  min_gain Value to set as the minimum gain value 0 to 48.0
 //! @param  max_gain Value to set as the maximum gain value 0 to 48.0
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_POLARIMETRIC_CAMERA_AUTO_GAIN_RANGE(l3cam device, float min_gain, float max_gain);
 
 //! @brief  Changes the exposure time of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  exposure_time Value in usecs to set the exposure time 33.456us to 1000000.0us
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_POLARIMETRIC_CAMERA_EXPOSURE_TIME(l3cam device, float exposure_time);
 
 //! @brief  Enables/disables the automatic exposure time of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  enabled boolean to enable/disable the function
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int ENABLE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME(l3cam device, bool enabled);
 
 //! @brief  Changes the exposure time range of the auto exposure time parameter of the polarimetric camera
 //! @param  device The device to execute the function
 //! @param  min_exposure Value to set as the minimum exposure time value 33.456us to 1000000.0us
 //! @param  max_exposure Value to set as the maximum exposure time value 33.456us to 1000000.0us
-//! @return 0 if OK otherwise Error, check error definition
+//! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME_RANGE(l3cam device, float min_exposure, float max_exposure);
 
 #ifdef __cplusplus

@@ -2,9 +2,41 @@
 
 All notable changes to the L3CamViewer application will be documented in this file.
 
+## [30/05/2024] 2.0.0
+
+### Added 
+
+- Support for wide econ and wide thermal sensors
+- Support for YUV econ wide image
+- Support for new library version 0.1.18R
+- New checkbox to enable/disable autobias
+- Sliders to manually modify the bias parameter
+- Input to modify the autobias parameter
+- Python script to read raw thermal images, visualize and save them.
+- binary file with thermal raw data, as saved in the data collection tab.
+
+### Changed
+
+- ComboBox to select the point cloud color types
+- The new thermal library options are enabled/Disabled by L3Cam software version
+- The python script for reading binary pointclouds now shows the RGB stored in the file
+
+### Fixed
+
+- The files to save in the data collection that are in the queue are not being saved
+- If the INITIALIZE function for the library is called more than once the application crashes
+
+### Removed
+
+- Radio buttons for point cloud color
+
+### Known bugs
+
+### Issues
+
 ## [08/03/2024] 1.1.3
 
-## Added
+### Added
 
 - Support for new library version 0.1.17R
 - Functions to enable the udp temperatures over UDP

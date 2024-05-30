@@ -315,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
@@ -4251,8 +4251,8 @@ QGroupBox {
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>301</width>
-        <height>341</height>
+        <width>311</width>
+        <height>461</height>
        </rect>
       </property>
       <property name="font">
@@ -4278,91 +4278,39 @@ QGroupBox {
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <family>Ubuntu</family>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PointCloud Color&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_color_type">
+        <layout class="QHBoxLayout" name="horizontalLayout_20">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_color_types_1">
-           <item>
-            <widget class="QRadioButton" name="radioButton_range3D">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Range &amp;3D</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButton_range3DZ">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Range 3D &amp;Z</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButton_intensity">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Intensit&amp;y</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <family>Ubuntu</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PointCloud Color&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_color_types_2">
+          <widget class="QComboBox" name="comboBox_pointcloud_color">
            <item>
-            <widget class="QRadioButton" name="radioButton_fusion_thermal">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Thermal F&amp;usion</string>
-             </property>
-            </widget>
+            <property name="text">
+             <string>Range 3D</string>
+            </property>
            </item>
            <item>
-            <widget class="QRadioButton" name="radioButton_fusion_mono">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>&amp;RGB Fusion</string>
-             </property>
-            </widget>
+            <property name="text">
+             <string>Range 3D Z</string>
+            </property>
            </item>
-          </layout>
+           <item>
+            <property name="text">
+             <string>Intensity</string>
+            </property>
+           </item>
+          </widget>
          </item>
         </layout>
        </item>
@@ -4421,6 +4369,16 @@ QGroupBox {
         </spacer>
        </item>
        <item>
+        <widget class="QCheckBox" name="checkBox_show_axis">
+         <property name="text">
+          <string>Show Axis</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_3">
          <property name="font">
           <font>
@@ -4436,52 +4394,6 @@ QGroupBox {
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_dist_filter">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_RemoteFilter_max">
-           <item>
-            <widget class="QLabel" name="label_max_range">
-             <property name="maximumSize">
-              <size>
-               <width>110</width>
-               <height>27</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Max distance:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="spinBox_max_range">
-             <property name="maximumSize">
-              <size>
-               <width>182</width>
-               <height>27</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="suffix">
-              <string> mm</string>
-             </property>
-             <property name="maximum">
-              <number>200000</number>
-             </property>
-             <property name="value">
-              <number>180000</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_RemoteFilter_min">
            <item>
@@ -4506,7 +4418,7 @@ QGroupBox {
             <widget class="QSpinBox" name="spinBox_min_range">
              <property name="maximumSize">
               <size>
-               <width>182</width>
+               <width>125</width>
                <height>27</height>
               </size>
              </property>
@@ -4523,6 +4435,52 @@ QGroupBox {
              </property>
              <property name="value">
               <number>1500</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_RemoteFilter_max">
+           <item>
+            <widget class="QLabel" name="label_max_range">
+             <property name="maximumSize">
+              <size>
+               <width>110</width>
+               <height>27</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Max distance:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox_max_range">
+             <property name="maximumSize">
+              <size>
+               <width>125</width>
+               <height>27</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="suffix">
+              <string> mm</string>
+             </property>
+             <property name="maximum">
+              <number>200000</number>
+             </property>
+             <property name="value">
+              <number>180000</number>
              </property>
             </widget>
            </item>
@@ -4549,24 +4507,188 @@ QGroupBox {
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_show_axis">
-         <property name="text">
-          <string>Show Axis</string>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="checked">
-          <bool>true</bool>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
          </property>
-        </widget>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="font">
+            <font>
+             <family>Ubuntu</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remote points filter&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="minDistanceLayout">
+           <item>
+            <widget class="QLabel" name="label_Min_distance">
+             <property name="minimumSize">
+              <size>
+               <width>81</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>104</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Min Distance:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="min_distance_box">
+             <property name="maximumSize">
+              <size>
+               <width>125</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="suffix">
+              <string> mm</string>
+             </property>
+             <property name="minimum">
+              <number>1500</number>
+             </property>
+             <property name="maximum">
+              <number>300000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="MaxDistanceLayout">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_Max_distance">
+             <property name="minimumSize">
+              <size>
+               <width>79</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>105</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Max Distance:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="max_distance_box">
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>125</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="suffix">
+              <string> mm</string>
+             </property>
+             <property name="maximum">
+              <number>300000</number>
+             </property>
+             <property name="value">
+              <number>200000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_apply_filter">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>27</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>1550</width>
+             <height>27</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Apply</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
      <widget class="QGroupBox" name="groupBox">
       <property name="geometry">
        <rect>
-        <x>330</x>
+        <x>350</x>
         <y>20</y>
-        <width>371</width>
-        <height>441</height>
+        <width>411</width>
+        <height>461</height>
        </rect>
       </property>
       <property name="font">
@@ -4592,167 +4714,329 @@ QGroupBox {
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_13">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <widget class="QLabel" name="label_bias_title">
+           <property name="font">
+            <font>
+             <family>Ubuntu</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;BIAS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_auto_bias">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Auto</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_16">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_27">
            <item>
-            <widget class="QLabel" name="label_2">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
+            <widget class="QLabel" name="label_5">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>0</height>
+              </size>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remote points filter&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>Bias Right</string>
              </property>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="minDistanceLayout">
-             <item>
-              <widget class="QLabel" name="label_Min_distance">
-               <property name="minimumSize">
-                <size>
-                 <width>81</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>104</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Min Distance:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="min_distance_box">
-               <property name="maximumSize">
-                <size>
-                 <width>125</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
-               <property name="suffix">
-                <string> mm</string>
-               </property>
-               <property name="minimum">
-                <number>1500</number>
-               </property>
-               <property name="maximum">
-                <number>300000</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="MaxDistanceLayout">
-             <property name="spacing">
-              <number>4</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="label_Max_distance">
-               <property name="minimumSize">
-                <size>
-                 <width>79</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>105</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Max Distance:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="max_distance_box">
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>125</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
-               <property name="suffix">
-                <string> mm</string>
-               </property>
-               <property name="maximum">
-                <number>300000</number>
-               </property>
-               <property name="value">
-                <number>200000</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_apply_filter">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+            <widget class="QSlider" name="horizontalSlider_bias_right">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
              <property name="minimumSize">
               <size>
-               <width>0</width>
-               <height>27</height>
+               <width>230</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>700</number>
+             </property>
+             <property name="maximum">
+              <number>4000</number>
+             </property>
+             <property name="value">
+              <number>1500</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="invertedAppearance">
+              <bool>false</bool>
+             </property>
+             <property name="invertedControls">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_bias_value_right">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>1550</width>
-               <height>27</height>
+               <width>16777215</width>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
               <font>
-               <pointsize>11</pointsize>
+               <pointsize>12</pointsize>
               </font>
              </property>
              <property name="text">
-              <string>Apply</string>
+              <string> 1580 mV</string>
              </property>
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_29">
+           <item>
+            <widget class="QLabel" name="label_6">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Bias Left</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="horizontalSlider_bias_left">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>230</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>700</number>
+             </property>
+             <property name="maximum">
+              <number>4000</number>
+             </property>
+             <property name="value">
+              <number>1500</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="invertedAppearance">
+              <bool>false</bool>
+             </property>
+             <property name="invertedControls">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_bias_value_left">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>1380 mV</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_10">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_autobias_short_range">
+         <property name="text">
+          <string>Short Range</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_noise_target_right">
+         <item>
+          <widget class="QLabel" name="label_gain_target_right">
+           <property name="maximumSize">
+            <size>
+             <width>130</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Right Gain</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBox_gain_target_right">
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>125</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <widget class="QPushButton" name="pushButton_get_autobias_right">
+           <property name="text">
+            <string>GET </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_send_autobias_right">
+           <property name="text">
+            <string>SEND</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_noise_target_left">
+         <item>
+          <widget class="QLabel" name="label_gain_target_left">
+           <property name="maximumSize">
+            <size>
+             <width>130</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Left Gain</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBox_gain_target_left">
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>125</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <item>
+          <widget class="QPushButton" name="pushButton_get_autobias_left">
+           <property name="text">
+            <string>GET </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_send_autobias_left">
+           <property name="text">
+            <string>SEND</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -4770,209 +5054,11 @@ QGroupBox {
         </spacer>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_15">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_10">
-           <item>
-            <widget class="QLabel" name="label_bias_title">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;BIAS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_auto_bias">
-             <property name="text">
-              <string>Auto</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QPushButton" name="pushButton_long_range">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>42</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>LONG RANGE</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_short_range">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>42</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>SHORT RANGE</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_16">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_27">
-             <item>
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>R</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSlider" name="horizontalSlider_bias">
-               <property name="minimumSize">
-                <size>
-                 <width>230</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="minimum">
-                <number>700</number>
-               </property>
-               <property name="maximum">
-                <number>3500</number>
-               </property>
-               <property name="value">
-                <number>1580</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="invertedAppearance">
-                <bool>false</bool>
-               </property>
-               <property name="invertedControls">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_bias_value">
-               <property name="minimumSize">
-                <size>
-                 <width>70</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string> 1580 mV</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_29">
-             <item>
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>L</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSlider" name="horizontalSlider_bias_left">
-               <property name="minimumSize">
-                <size>
-                 <width>230</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="minimum">
-                <number>700</number>
-               </property>
-               <property name="maximum">
-                <number>3500</number>
-               </property>
-               <property name="value">
-                <number>1380</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="invertedAppearance">
-                <bool>false</bool>
-               </property>
-               <property name="invertedControls">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_bias_value_left">
-               <property name="minimumSize">
-                <size>
-                 <width>70</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>1380 mV</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
+        <widget class="Line" name="line_11">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_6">
