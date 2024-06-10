@@ -3323,6 +3323,13 @@ void MainWindow::on_comboBox_pointcloud_color_currentIndexChanged(const QString 
     int error = 0;
     int color = RAINBOW;
 
+
+    if(!m_device_started)
+    {
+        return;
+    }
+
+
     if(arg1 == "Range 3D"){
         ui->label_max_range->setText("Max distance:");
         ui->label_min_range->setText("Min distance:");
