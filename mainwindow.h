@@ -430,15 +430,19 @@ private slots:
 
     void on_pushButton_get_autobias_right_clicked();
 
-    void on_pushButton_send_autobias_right_clicked();
-
     void on_pushButton_get_autobias_left_clicked();
-
-    void on_pushButton_send_autobias_left_clicked();
 
     void on_checkBox_autobias_short_range_clicked(bool checked);
 
     void on_comboBox_pointcloud_color_currentIndexChanged(const QString &arg1);
+
+    void on_horizontalSlider_autobias_r_sliderReleased();
+
+    void on_horizontalSlider_autobias_r_valueChanged(int value);
+
+    void on_horizontalSlider_autobias_l_sliderReleased();
+
+    void on_horizontalSlider_autobias_l_valueChanged(int value);
 
 private:
     Ui::MainWindow *ui;

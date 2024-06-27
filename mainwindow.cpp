@@ -232,6 +232,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_initializing_thermal_settings = false;
 
     m_econ_wide_connected = false;
+
+    ui->checkBox_autobias_short_range->hide();
 }
 
 MainWindow::~MainWindow()
@@ -3182,10 +3184,12 @@ void MainWindow::on_checkBox_auto_bias_clicked(bool checked)
     ui->horizontalSlider_bias_left->setEnabled(!checked);
 
     ui->checkBox_autobias_short_range->setEnabled(checked);
-    ui->pushButton_send_autobias_left->setEnabled(checked);
-    ui->pushButton_send_autobias_right->setEnabled(checked);
+    //ui->pushButton_send_autobias_left->setEnabled(checked);
+    //ui->pushButton_send_autobias_right->setEnabled(checked);
     ui->pushButton_get_autobias_left->setEnabled(checked);
     ui->pushButton_get_autobias_right->setEnabled(checked);
+    ui->horizontalSlider_autobias_l->setEnabled(checked);
+    ui->horizontalSlider_autobias_r->setEnabled(checked);
 }
 
 void MainWindow::on_horizontalSlider_bias_right_valueChanged(int value)
@@ -3278,16 +3282,9 @@ void MainWindow::on_pushButton_get_autobias_right_clicked()
     if (error != L3CAM_OK){
         addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
     }else{
-        ui->spinBox_gain_target_right->setValue(gain);
-    }
-}
-
-void MainWindow::on_pushButton_send_autobias_right_clicked()
-{
-    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 1, ui->spinBox_gain_target_right->value());
-
-    if (error != L3CAM_OK){
-        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+        ui->horizontalSlider_autobias_r->setValue(gain);
+        ui->label_autobias_r_value->setText(QString("%1 \%").arg(gain));
+        //ui->spinBox_gain_target_right->setValue(gain);
     }
 }
 
@@ -3300,16 +3297,8 @@ void MainWindow::on_pushButton_get_autobias_left_clicked()
     if (error != L3CAM_OK){
         addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
     }else{
-        ui->spinBox_gain_target_left->setValue(gain);
-    }
-}
-
-void MainWindow::on_pushButton_send_autobias_left_clicked()
-{
-    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 2, ui->spinBox_gain_target_left->value());
-
-    if (error != L3CAM_OK){
-        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+        ui->horizontalSlider_autobias_l->setValue(gain);
+        ui->label_autobias_l_value->setText(QString("%1 \%").arg(gain));
     }
 }
 
@@ -3328,7 +3317,6 @@ void MainWindow::on_comboBox_pointcloud_color_currentIndexChanged(const QString 
     {
         return;
     }
-
 
     if(arg1 == "Range 3D"){
         ui->label_max_range->setText("Max distance:");
@@ -3383,3 +3371,31 @@ void MainWindow::on_comboBox_pointcloud_color_currentIndexChanged(const QString 
     addMessageToLogWindow("change pointcloud color response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), (error) ? logType::error : logType::verbose);
 }
 
+
+void MainWindow::on_horizontalSlider_autobias_r_sliderReleased()
+{
+    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 1, ui->horizontalSlider_autobias_r->value());
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+void MainWindow::on_horizontalSlider_autobias_r_valueChanged(int value)
+{
+    ui->label_autobias_r_value->setText(QString("%1 \%").arg(value));
+}
+
+void MainWindow::on_horizontalSlider_autobias_l_sliderReleased()
+{
+    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 1, ui->horizontalSlider_autobias_l->value());
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+void MainWindow::on_horizontalSlider_autobias_l_valueChanged(int value)
+{
+    ui->label_autobias_l_value->setText(QString("%1 \%").arg(value));
+}
