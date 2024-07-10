@@ -197,7 +197,7 @@ int SET_BIAS_SHORT_RANGE(l3cam device, bool enabled);
 //! @param  device The device to execute the function
 //! @param  enabled True to enable the autobias, false to disable
 //! @return none
-void ENABLE_AUTO_BIAS(l3cam device, bool enabled);
+int ENABLE_AUTO_BIAS(l3cam device, bool enabled);
 
 //! @brief  Allows the user to manually modify the bias parameter of each module of the device when autobias is disabled
 //! @param  device The device to execute the function

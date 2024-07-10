@@ -3388,7 +3388,7 @@ void MainWindow::on_horizontalSlider_autobias_r_valueChanged(int value)
 
 void MainWindow::on_horizontalSlider_autobias_l_sliderReleased()
 {
-    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 1, ui->horizontalSlider_autobias_l->value());
+    int error = CHANGE_AUTOBIAS_VALUE(m_devices[0], 2, ui->horizontalSlider_autobias_l->value());
 
     if (error != L3CAM_OK){
         addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
