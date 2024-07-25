@@ -2939,14 +2939,14 @@ void MainWindow::on_checkBox_blur_faces_clicked(bool checked)
 
 void MainWindow::on_pushButton_save_clicked()
 {
-    /*
+
     if(!m_save_rgb_image && !m_save_pointcloud && !m_save_thermal_image &&
             !m_save_pol_image && !m_save_wide_image && !m_save_narrow_image && !m_save_thermal_data_image)
     {
         m_save_data = false;
         return;
     }
-    */
+
 
     m_save_data = !m_save_data;
 
