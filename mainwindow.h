@@ -50,6 +50,8 @@
 
 #include <pclPointCloudViewerController.h>
 
+#include <tcpPythonAPIReceiverController.h>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn/dnn.hpp>
 
@@ -113,6 +115,18 @@ private:
     int32_t getValueForOldLibrary(int index);
 
     void initializePointCloudSelector();
+
+    void initializePythonAPIServer();
+
+    void customEvent(QEvent *event);
+
+    void executeStartRecordingRequest(tcpPythonAPIReceiverControllerExecuteStartRecordingRequest *request);
+
+    void executeStopRecordingRequest(tcpPythonAPIReceiverControllerExecuteStopRecordingRequest *request);
+
+    void executeChangeSensorPathRequest(tcpPythonAPIReceiverControllerExecuteChangeSensorPathRequest *request);
+
+    void executeEnableSensorDataCollectionRequest(tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest *request);
 
 public slots:
 
@@ -470,8 +484,9 @@ private:
     saveDataManager *m_save_polarimetric_manager;
     imageSaveDataExecutor *m_save_polarimetric_executor;
 
-
     pclPointCloudViewerController *m_point_cloud_viewer;
+
+    tcpPythonAPIReceiverController *m_tcp_python_api_controller;
 
     l3cam m_devices[1];
     sensor m_sensors[6];

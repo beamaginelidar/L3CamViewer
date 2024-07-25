@@ -139,6 +139,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_temperatures_viewer = new imageViewerForm();
 
+    m_tcp_python_api_controller = tcpPythonAPIReceiverController::Instance();
+
     m_temperatures_viewer->setWindowTitle("Thermal data");
 
     m_save_thermal_image_manager->setDataTypeToSave(images);
@@ -147,7 +149,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_save_polarimetric_manager->setDataTypeToSave(images);
 
     m_save_thermal_data_manager->setDataTypeToSave(binaryFloat);
-
 
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint8_t>("uint8_t");
@@ -234,6 +235,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_econ_wide_connected = false;
 
     ui->checkBox_autobias_short_range->hide();
+
+    initializePythonAPIServer();
 }
 
 MainWindow::~MainWindow()
@@ -1858,6 +1861,185 @@ void MainWindow::initializePointCloudSelector()
     }
 }
 
+void MainWindow::initializePythonAPIServer()
+{
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStartRecordingRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStopRecordingRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteChangeSensorPathRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest::TYPE, this);
+
+    m_tcp_python_api_controller->initializeServer();
+    m_tcp_python_api_controller->startController();
+}
+
+void MainWindow::customEvent(QEvent *event)
+{
+    if(tcpPythonAPIReceiverControllerExecuteStartRecordingRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteStartRecordingRequest *>(event))
+    {
+        executeStartRecordingRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteStopRecordingRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteStopRecordingRequest *>(event))
+    {
+        executeStopRecordingRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteChangeSensorPathRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteChangeSensorPathRequest*>(event))
+    {
+        executeChangeSensorPathRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest*>(event))
+    {
+        executeEnableSensorDataCollectionRequest(p_event);
+    }
+}
+
+void MainWindow::executeStartRecordingRequest(tcpPythonAPIReceiverControllerExecuteStartRecordingRequest *request)
+{
+    if(!m_save_data)
+    {
+        ui->spinBox_save_counter->setValue(request->getFrames());
+        on_pushButton_save_clicked();
+    }
+}
+
+void MainWindow::executeStopRecordingRequest(tcpPythonAPIReceiverControllerExecuteStopRecordingRequest *request)
+{
+    Q_UNUSED(request);
+    if(m_save_data)
+    {
+        on_pushButton_save_clicked();
+    }
+}
+
+void MainWindow::executeChangeSensorPathRequest(tcpPythonAPIReceiverControllerExecuteChangeSensorPathRequest *request)
+{
+
+    switch (request->getSensor()) {
+    case  sensor_lidar:
+        if(ui->checkBox_save_pointcloud->isEnabled())
+        {
+            ui->lineEdit_save_pointcloud_path->setText(request->getPath());
+            m_save_pointcloud_executor->setPathToSavePcd(ui->lineEdit_save_pointcloud_path->text());
+        }
+        break;
+    case sensor_econ_rgb:
+        if(ui->checkBox_save_rgb->isEnabled())
+        {
+            ui->lineEdit_save_rgb_path->setText(request->getPath());
+            m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_rgb_path->text());
+        }
+        break;
+    case sensor_pol:
+        if(ui->checkBox_save_pol->isEnabled())
+        {
+            ui->lineEdit_save_pol_path->setText(request->getPath());
+            m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_pol_path->text());
+        }
+        break;
+    case sensor_thermal:
+        if(ui->checkBox_save_thermal->isEnabled())
+        {
+            ui->lineEdit_save_thermal_path->setText(request->getPath());
+            m_save_thermal_image_executor->setPathToSaveImages(ui->lineEdit_save_thermal_path->text());
+        }
+        break;
+    case sensor_allied_narrow:
+        if(ui->checkBox_save_narrow->isEnabled())
+        {
+            ui->lineEdit_save_narrow_path->setText(request->getPath());
+            m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_narrow_path->text());
+        }
+        break;
+    case sensor_allied_wide:
+        if(ui->checkBox_save_wide->isEnabled())
+        {
+            ui->lineEdit_save_wide_path->setText(request->getPath());
+            m_save_polarimetric_executor->setPathToSaveImages(ui->lineEdit_save_wide_path->text());
+        }
+        break;
+    case sensor_econ_wide:
+        if(ui->checkBox_save_rgb->isEnabled())
+        {
+            ui->lineEdit_save_rgb_path->setText(request->getPath());
+            m_save_rgb_image_executor->setPathToSaveImages(ui->lineEdit_save_rgb_path->text());
+        }
+        break;
+    case 99: //!Custom value for thermal raw data
+        if(ui->checkBox_save_thermal_data->isEnabled())
+        {
+            ui->lineEdit_save_thermal_bin_path->setText(request->getPath());
+            m_save_thermal_data_executor->setPathToSaveImages(ui->lineEdit_save_thermal_bin_path->text());
+        }
+        break;
+    default:
+        break;
+    }
+
+}
+
+void MainWindow::executeEnableSensorDataCollectionRequest(tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest *request)
+{
+
+    switch (request->getSensor()) {
+    case  sensor_lidar:
+        if(ui->checkBox_save_pointcloud->isEnabled())
+        {
+            ui->checkBox_save_pointcloud->setChecked(request->isEnabled());
+            on_checkBox_save_pointcloud_clicked(request->isEnabled());
+        }
+        break;
+    case sensor_econ_rgb:
+        if(ui->checkBox_save_rgb->isEnabled())
+        {
+            ui->checkBox_save_rgb->setChecked(request->isEnabled());
+            on_checkBox_save_rgb_clicked(request->isEnabled());
+        }
+        break;
+    case sensor_pol:
+        if(ui->checkBox_save_pol->isEnabled())
+        {
+            ui->checkBox_save_pol->setChecked(request->isEnabled());
+            on_checkBox_save_pol_clicked(request->isEnabled());
+        }
+        break;
+    case sensor_thermal:
+        if(ui->checkBox_save_thermal->isEnabled())
+        {
+            ui->checkBox_save_thermal->setChecked(request->isEnabled());
+            on_checkBox_save_thermal_clicked(request->isEnabled());
+        }
+        break;
+    case sensor_allied_narrow:
+        if(ui->checkBox_save_narrow->isEnabled())
+        {
+            ui->checkBox_save_narrow->setChecked(request->isEnabled());
+            on_checkBox_save_narrow_clicked(request->isEnabled());
+        }
+        break;
+    case sensor_allied_wide:
+        if(ui->checkBox_save_wide->isEnabled())
+        {
+            ui->checkBox_save_wide->setChecked(request->isEnabled());
+            on_checkBox_save_wide_clicked(request->isEnabled());
+        }
+        break;
+    case sensor_econ_wide:
+        if(ui->checkBox_save_rgb->isEnabled())
+        {
+            ui->checkBox_save_rgb->setChecked(request->isEnabled());
+            on_checkBox_save_rgb_clicked(request->isEnabled());
+        }
+        break;
+    case 99: //!Custom value for thermal raw data
+        if(ui->checkBox_save_thermal_data->isEnabled())
+        {
+            ui->checkBox_save_thermal_data->setChecked(request->isEnabled());
+            on_checkBox_save_thermal_data_clicked(request->isEnabled());
+        }
+        break;
+    default:
+        break;
+    }
+}
 
 void MainWindow::updateSensorError(int32_t error)
 {
@@ -2757,12 +2939,14 @@ void MainWindow::on_checkBox_blur_faces_clicked(bool checked)
 
 void MainWindow::on_pushButton_save_clicked()
 {
+    /*
     if(!m_save_rgb_image && !m_save_pointcloud && !m_save_thermal_image &&
             !m_save_pol_image && !m_save_wide_image && !m_save_narrow_image && !m_save_thermal_data_image)
     {
         m_save_data = false;
         return;
     }
+    */
 
     m_save_data = !m_save_data;
 

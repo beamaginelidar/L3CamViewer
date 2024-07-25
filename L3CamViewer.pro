@@ -30,6 +30,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         BeamagineCore/pclPointCloudViewer/pclPointCloudViewerController.cpp \
         BeamagineCore/pclPointCloudViewer/pclPointCloudViewerControllerMessages.cpp \
+        BeamagineCore/tcpPythonAPIReceiverController/tcpPythonAPIReceiverController.cpp \
+        BeamagineCore/tcpPythonAPIReceiverController/tcpPythonAPIReceiverControllerMessages.cpp \
         BeamagineCore/udpReceiverController/udpReceiverControllerMessages.cpp \
         BeamagineCore/udpReceiverController/udpreceivercontroller.cpp \
         BeamagineCore/saveDataManager/imageSaveDataExecutor.cpp \
@@ -45,6 +47,9 @@ SOURCES += \
 HEADERS += \
         BeamagineCore/pclPointCloudViewer/pclPointCloudViewerController.h \
         BeamagineCore/pclPointCloudViewer/pclPointCloudViewerControllerMessages.h \
+        BeamagineCore/tcpPythonAPIReceiverController/pythonAPICodes.h \
+        BeamagineCore/tcpPythonAPIReceiverController/tcpPythonAPIReceiverController.h \
+        BeamagineCore/tcpPythonAPIReceiverController/tcpPythonAPIReceiverControllerMessages.h \
         BeamagineCore/udpReceiverController/udpReceiverControllerMessages.h \
         BeamagineCore/udpReceiverController/udpreceivercontroller.h \
         BeamagineCore/saveDataManager/imageSaveDataExecutor.h \
@@ -67,6 +72,7 @@ INCLUDEPATH += \
         BeamagineCore/udpReceiverController/ \
         BeamagineCore/pclPointCloudViewer/ \
         BeamagineCore/saveDataManager/ \
+        BeamagineCore/tcpPythonAPIReceiverController/ \
         BeamagineCore/
 
 
