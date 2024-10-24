@@ -237,6 +237,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->checkBox_autobias_short_range->hide();
 
     initializePythonAPIServer();
+
+    m_send_response_api = false;
 }
 
 MainWindow::~MainWindow()
@@ -700,9 +702,14 @@ void MainWindow::searchTimerTimeOut()
             ui->label_device_sn->setText(QString("S/N: %1").arg(m_devices[0].serial_number));
             ui->label_device_sw_version->setText(QString("VERSION: %1").arg(m_devices[0].app_version));
 
+            m_initializing_thermal_settings = true;
+            enableThermalSettingsForVersion(QString("%1").arg(m_devices[0].app_version));
+            m_initializing_thermal_settings = false;
+
             addMessageToLogWindow("Device address " + QString(m_devices[0].ip_address));
 
             deviceDetected();
+
             int error = L3CAM_OK;
             error = START_DEVICE(m_devices[0]);
             if(error == L3CAM_OK){
@@ -722,6 +729,12 @@ void MainWindow::searchTimerTimeOut()
             }else{
                 addMessageToLogWindow("Start device response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), logType::error);
             }
+
+            if(m_send_response_api)
+            {
+                m_tcp_python_api_controller->doSendResponse(error);
+            }
+
         }else{
             m_search_timer->start(500);
         }
@@ -1731,6 +1744,7 @@ void MainWindow::enableThermalSettingsForVersion(QString l3cam_version)
     int version = (numbers_ver.at(0).toInt() * 100) + (numbers_ver.at(1).toInt()*10) + (numbers_ver.at(2).toInt());
     ui->comboBox_thermal_color->clear();
 
+
     if(version < 229){
         //!old thermal camera library
         m_new_thermal_library = false;
@@ -1867,6 +1881,17 @@ void MainWindow::initializePythonAPIServer()
     m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStopRecordingRequest::TYPE, this);
     m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteChangeSensorPathRequest::TYPE, this);
     m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteInitializeRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteFindDevicesRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteGetStatusRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteGetSensorsRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStartDeviceRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStopDeviceRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStartStreamRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteStopStreamRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecutePowerOffRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteFastInitRequest::TYPE, this);
+    m_tcp_python_api_controller->setEventHandler(tcpPythonAPIReceiverControllerExecuteTerminateRequest::TYPE, this);
 
     m_tcp_python_api_controller->initializeServer();
     m_tcp_python_api_controller->startController();
@@ -1890,6 +1915,27 @@ void MainWindow::customEvent(QEvent *event)
     {
         executeEnableSensorDataCollectionRequest(p_event);
     }
+    else if(tcpPythonAPIReceiverControllerExecuteFastInitRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteFastInitRequest*>(event))
+    {
+        executeFastInitRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteStartDeviceRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteStartDeviceRequest*>(event))
+    {
+        executeStartDeviceRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteStopDeviceRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteStopDeviceRequest*>(event))
+    {
+        executeStopDeviceRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteStartStreamRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteStartStreamRequest*>(event))
+    {
+        executeStartStreamRequest(p_event);
+    }
+    else if(tcpPythonAPIReceiverControllerExecuteStopStreamRequest *p_event = dynamic_cast<tcpPythonAPIReceiverControllerExecuteStopStreamRequest*>(event))
+    {
+        executeStopStreamRequest(p_event);
+    }
+
 }
 
 void MainWindow::executeStartRecordingRequest(tcpPythonAPIReceiverControllerExecuteStartRecordingRequest *request)
@@ -2039,6 +2085,37 @@ void MainWindow::executeEnableSensorDataCollectionRequest(tcpPythonAPIReceiverCo
     default:
         break;
     }
+}
+
+void MainWindow::executeFastInitRequest(tcpPythonAPIReceiverControllerExecuteFastInitRequest *request)
+{
+    Q_UNUSED(request);
+    m_send_response_api = true;
+    on_pushButton_fast_init_clicked();
+}
+
+void MainWindow::executeStartDeviceRequest(tcpPythonAPIReceiverControllerExecuteStartDeviceRequest *request)
+{
+    Q_UNUSED(request);
+    on_pushButton_start_device_clicked();
+}
+
+void MainWindow::executeStopDeviceRequest(tcpPythonAPIReceiverControllerExecuteStopDeviceRequest *request)
+{
+    Q_UNUSED(request);
+    on_pushButton_start_device_clicked();
+}
+
+void MainWindow::executeStartStreamRequest(tcpPythonAPIReceiverControllerExecuteStartStreamRequest *request)
+{
+    Q_UNUSED(request);
+    on_pushButton_start_streaming_clicked();
+}
+
+void MainWindow::executeStopStreamRequest(tcpPythonAPIReceiverControllerExecuteStopStreamRequest *request)
+{
+    Q_UNUSED(request);
+    on_pushButton_start_streaming_clicked();
 }
 
 void MainWindow::updateSensorError(int32_t error)
@@ -3582,4 +3659,34 @@ void MainWindow::on_horizontalSlider_autobias_l_sliderReleased()
 void MainWindow::on_horizontalSlider_autobias_l_valueChanged(int value)
 {
     ui->label_autobias_l_value->setText(QString("%1 \%").arg(value));
+}
+
+void MainWindow::on_horizontalSlider_hidet_conta_depth_sliderMoved(int position)
+{
+   ui->label_hidet_conta_depth_val->setText(QString("%1 %").arg(position));
+}
+
+void MainWindow::on_horizontalSlider_hidet_conta_depth_sliderReleased()
+{
+    int error = CHANGE_HIDET_NOISE_FILTER_PARAMETERS(m_devices[0], (uint8_t)ui->horizontalSlider_hidet_conta_depth->value());
+
+    if (error != L3CAM_OK){
+        addMessageToLogWindow(QString(getBeamErrorDescription(error)), logType::error);
+    }
+}
+
+void MainWindow::on_pushButton_get_hidet_conta_depth_clicked()
+{
+    uint8_t depth = 0;
+    int error = GET_HIDET_NOISE_FILTER_PARAMETERS(m_devices[0], &depth);
+
+    if(error != L3CAM_OK)
+    {
+        addMessageToLogWindow("Error getting hidet parameter " + QString(getBeamErrorDescription(error)), logType::error);
+    }
+    else{
+        ui->horizontalSlider_hidet_conta_depth->setValue(depth);
+        ui->label_hidet_conta_depth_val->setText(QString("%1 %").arg(depth));
+
+    }
 }

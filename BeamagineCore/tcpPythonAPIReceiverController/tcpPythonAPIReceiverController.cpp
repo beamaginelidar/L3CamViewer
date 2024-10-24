@@ -28,6 +28,10 @@ tcpPythonAPIReceiverController* tcpPythonAPIReceiverController::m_instance = NUL
 
 bool server_thread_started = true;
 
+bool send_response = false;
+
+QString response_api = "";
+
 void *newAPIConnectionThread(void *params){
 
     struct tcp_thread_data *data = (struct tcp_thread_data *) params;
@@ -43,10 +47,11 @@ void *newAPIConnectionThread(void *params){
         while(thread_alive){
 
 #ifdef _WIN32
-        size_rec = recv(ClientSocket, buffer, 500, 0);
+            size_rec = recv(ClientSocket, buffer, 500, 0);
 #else
-        size_rec = read(socket_d , buffer, 2000);
+            size_rec = read(socket_d , buffer, 2000);
 #endif
+            //qDebug()<<"Reading finished size "<<size_rec;
 
             if ( size_rec > 0 ){
 
@@ -62,8 +67,19 @@ void *newAPIConnectionThread(void *params){
 
                 mtx.unlock();
 
-            }else if(size_rec < 0){
-                thread_alive = false;
+            }
+
+            //else if(size_rec < 0){
+            //    thread_alive = false;
+            //}
+
+            if(send_response)
+            {
+                //qDebug()<<"Sending response"<<response_api;
+                send(socket_d, (char*)response_api.toStdString().c_str(), response_api.size(), 0);
+                response_api = "";
+                send_response = false;
+
             }
 
         }
@@ -98,8 +114,15 @@ void *acceptingConnectionThread(void *params){
             continue;
         }
 
+        timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 500000; // 200ms timewait
+
+        setsockopt(client_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
         data_for_protobuf_tcp_thread = (struct tcp_thread_data*)malloc( sizeof(struct tcp_thread_data ));
         data_for_protobuf_tcp_thread->socket_d = client_socket_fd;
+
 
         pthread_create (&new_api_connection_thread_handler, NULL, newAPIConnectionThread, (void*)data_for_protobuf_tcp_thread);
     }
@@ -156,7 +179,7 @@ void tcpPythonAPIReceiverController::initializeServer()
     m_server_started = false;
     m_server_initialized = false;
 
-    qDebug()<<"tcpPythonAPIReceiverController::initializeServer Initializing python API server";
+    //qDebug()<<"tcpPythonAPIReceiverController::initializeServer Initializing python API server";
 
     m_server.sin_family = AF_INET;
     m_server.sin_addr.s_addr = INADDR_ANY;
@@ -266,6 +289,79 @@ void tcpPythonAPIReceiverController::sendDisableSensorDataCollection(const QStri
     sendEvent(command->TYPE, command);
 }
 
+void tcpPythonAPIReceiverController::sendInitializeRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteInitializeRequest *command = new tcpPythonAPIReceiverControllerExecuteInitializeRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendFindDevicesRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteFindDevicesRequest *command = new tcpPythonAPIReceiverControllerExecuteFindDevicesRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendGetStatusRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteGetStatusRequest *command = new tcpPythonAPIReceiverControllerExecuteGetStatusRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendGetSensorsRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteGetSensorsRequest *command = new tcpPythonAPIReceiverControllerExecuteGetSensorsRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendStartDeviceRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteStartDeviceRequest *command = new tcpPythonAPIReceiverControllerExecuteStartDeviceRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendStopDeviceRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteStopDeviceRequest *command = new tcpPythonAPIReceiverControllerExecuteStopDeviceRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendStartStreamRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteStartStreamRequest *command = new tcpPythonAPIReceiverControllerExecuteStartStreamRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendStopStreamRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteStopStreamRequest *command = new tcpPythonAPIReceiverControllerExecuteStopStreamRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendPowerOffRequest()
+{
+    tcpPythonAPIReceiverControllerExecutePowerOffRequest *command = new tcpPythonAPIReceiverControllerExecutePowerOffRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendFastInitRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteFastInitRequest *command = new tcpPythonAPIReceiverControllerExecuteFastInitRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::sendTerminateRequest()
+{
+    tcpPythonAPIReceiverControllerExecuteTerminateRequest *command = new tcpPythonAPIReceiverControllerExecuteTerminateRequest();
+    sendEvent(command->TYPE, command);
+}
+
+void tcpPythonAPIReceiverController::doSendResponse(const int &error)
+{
+    //qDebug()<<__func__<<error;
+    response_api = QString("%1").arg(error);
+    send_response = true;
+}
+
 void tcpPythonAPIReceiverController::run()
 {
     readHttpMessagesThread();
@@ -301,11 +397,9 @@ QList<const QObject *> tcpPythonAPIReceiverController::getEventHandlers(const QE
 QString tcpPythonAPIReceiverController::processRequest(QByteArray data){
 
     QString response = "";
-
     QString request = QString(data.data());
 
-    qDebug()<<"Request received "<<request;
-
+    //qDebug()<<"Request received "<<request;
     int code = request.split("_")[0].toInt();
 
     switch(code){
@@ -323,6 +417,39 @@ QString tcpPythonAPIReceiverController::processRequest(QByteArray data){
         break;
     case STOP_RECORDING_REQUEST:
         m_instance->sendStopRecordingRequest();
+        break;
+    case INITIALIZE:
+        m_instance->sendInitializeRequest();
+        break;
+    case FIND_DEVICES:
+        m_instance->sendFindDevicesRequest();
+        break;
+    case GET_STATUS:
+        m_instance->sendGetStatusRequest();
+        break;
+    case GET_SENSORS:
+        m_instance->sendGetSensorsRequest();
+        break;
+    case START_DEVICE:
+        m_instance->sendStartDeviceRequest();
+        break;
+    case STOP_DEVICE:
+        m_instance->sendStopDeviceRequest();
+        break;
+    case START_STREAM:
+        m_instance->sendStartStreamRequest();
+        break;
+    case STOP_STREAM:
+        m_instance->sendStopStreamRequest();
+        break;
+    case POWER_OFF:
+        m_instance->sendPowerOffRequest();
+        break;
+    case FAST_INIT:
+        m_instance->sendFastInitRequest();
+        break;
+    case TERMINATE:
+        m_instance->sendTerminateRequest();
         break;
     }
 

@@ -71,6 +71,30 @@ public:
 
     void sendDisableSensorDataCollection(const QString &request);
 
+    void sendInitializeRequest();
+
+    void sendFindDevicesRequest();
+
+    void sendGetStatusRequest();
+
+    void sendGetSensorsRequest();
+
+    void sendStartDeviceRequest();
+
+    void sendStopDeviceRequest();
+
+    void sendStartStreamRequest();
+
+    void sendStopStreamRequest();
+
+    void sendPowerOffRequest();
+
+    void sendFastInitRequest();
+
+    void sendTerminateRequest();
+
+    void doSendResponse(const int &error);
+
 public slots:
     void run();
 

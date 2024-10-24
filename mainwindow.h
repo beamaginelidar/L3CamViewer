@@ -128,6 +128,17 @@ private:
 
     void executeEnableSensorDataCollectionRequest(tcpPythonAPIReceiverControllerExecuteEnableSensorDataCollectionRequest *request);
 
+    void executeFastInitRequest(tcpPythonAPIReceiverControllerExecuteFastInitRequest *request);
+
+    void executeStartDeviceRequest(tcpPythonAPIReceiverControllerExecuteStartDeviceRequest *request);
+
+    void executeStopDeviceRequest(tcpPythonAPIReceiverControllerExecuteStopDeviceRequest *request);
+
+    void executeStartStreamRequest(tcpPythonAPIReceiverControllerExecuteStartStreamRequest *request);
+
+    void executeStopStreamRequest(tcpPythonAPIReceiverControllerExecuteStopStreamRequest *request);
+
+
 public slots:
 
     void updateSensorError(int32_t error);
@@ -458,6 +469,12 @@ private slots:
 
     void on_horizontalSlider_autobias_l_valueChanged(int value);
 
+    void on_horizontalSlider_hidet_conta_depth_sliderMoved(int position);
+
+    void on_horizontalSlider_hidet_conta_depth_sliderReleased();
+
+    void on_pushButton_get_hidet_conta_depth_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -607,6 +624,8 @@ private:
     bool m_initializing_thermal_settings;
 
     bool m_econ_wide_connected;
+
+    bool m_send_response_api;
 
 };
 

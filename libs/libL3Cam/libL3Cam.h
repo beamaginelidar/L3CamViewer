@@ -223,6 +223,18 @@ int CHANGE_AUTOBIAS_VALUE(l3cam device, uint8_t index, uint8_t gain);
 //! @return 0 if OK, otherwise Error, check error definition
 int GET_AUTOBIAS_VALUE(l3cam device, uint8_t index, uint8_t *gain);
 
+//! @brief  Modify the filter that removes noise caused by high detectivity elements
+//! @param  device The device to execute the function
+//! @param  depth Percentage that indicates the maximum depth that the filter is effective
+//! @return 0 if OK, otherwise Error, check error definition
+int CHANGE_HIDET_NOISE_FILTER_PARAMETERS(l3cam device, uint8_t depth);
+
+//! @brief  Gets the current value for the high detectivity filter
+//! @param  device The device to execute the function
+//! @param  depth Percentage that indicates the maximum depth that the filter is effective
+//! @return 0 if OK, otherwise Error, check error definition
+int GET_HIDET_NOISE_FILTER_PARAMETERS(l3cam device, uint8_t *depth);
+
 
 #ifdef __cplusplus
 }

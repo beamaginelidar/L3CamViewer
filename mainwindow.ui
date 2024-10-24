@@ -32,7 +32,7 @@
    <string>L3Cam Viewer</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../l3camStartUp/resources.qrc">
     <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -315,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
@@ -5056,6 +5056,78 @@ QGroupBox {
         </layout>
        </item>
        <item>
+        <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>HiDet Contamination</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <item>
+          <widget class="QLabel" name="label_7">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>26</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Depth</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_hidet_conta_depth">
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>3</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_hidet_conta_depth_val">
+           <property name="minimumSize">
+            <size>
+             <width>42</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>3 %</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_get_hidet_conta_depth">
+           <property name="text">
+            <string>GET</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <spacer name="verticalSpacer_6">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -5974,8 +6046,6 @@ QGroupBox {
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

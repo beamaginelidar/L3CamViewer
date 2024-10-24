@@ -55,5 +55,113 @@ private:
     bool m_enabled;
 };
 
+class tcpPythonAPIReceiverControllerExecuteInitializeRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteInitializeRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+
+    static const QEvent::Type TYPE;
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteFindDevicesRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteFindDevicesRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteGetStatusRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteGetStatusRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteGetSensorsRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteGetSensorsRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteStartDeviceRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteStartDeviceRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteStopDeviceRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteStopDeviceRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteStartStreamRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteStartStreamRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+   static const QEvent::Type TYPE;
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteStopStreamRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteStopStreamRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecutePowerOffRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecutePowerOffRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+private:
+
+};
+class tcpPythonAPIReceiverControllerExecuteFastInitRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteFastInitRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+
+private:
+
+};
+
+class tcpPythonAPIReceiverControllerExecuteTerminateRequest : public QEvent{
+public:
+    tcpPythonAPIReceiverControllerExecuteTerminateRequest() : QEvent((QEvent::Type)(QEvent::registerEventType())){
+
+    }
+    static const QEvent::Type TYPE;
+
+private:
+
+};
+
 
 #endif // tcpPythonAPIReceiverCONTROLLERMESSAGES_H
