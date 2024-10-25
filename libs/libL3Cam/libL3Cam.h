@@ -197,7 +197,7 @@ int SET_BIAS_SHORT_RANGE(l3cam device, bool enabled);
 //! @param  device The device to execute the function
 //! @param  enabled True to enable the autobias, false to disable
 //! @return none
-int ENABLE_AUTO_BIAS(l3cam device, bool enabled);
+void ENABLE_AUTO_BIAS(l3cam device, bool enabled);
 
 //! @brief  Allows the user to manually modify the bias parameter of each module of the device when autobias is disabled
 //! @param  device The device to execute the function
@@ -222,18 +222,6 @@ int CHANGE_AUTOBIAS_VALUE(l3cam device, uint8_t index, uint8_t gain);
 //! @param  gain Value between 0 and 100 that indicates the amount of noise allowed in the pointcloud
 //! @return 0 if OK, otherwise Error, check error definition
 int GET_AUTOBIAS_VALUE(l3cam device, uint8_t index, uint8_t *gain);
-
-//! @brief  Modify the filter that removes noise caused by high detectivity elements
-//! @param  device The device to execute the function
-//! @param  depth Percentage that indicates the maximum depth that the filter is effective
-//! @return 0 if OK, otherwise Error, check error definition
-int CHANGE_HIDET_NOISE_FILTER_PARAMETERS(l3cam device, uint8_t depth);
-
-//! @brief  Gets the current value for the high detectivity filter
-//! @param  device The device to execute the function
-//! @param  depth Percentage that indicates the maximum depth that the filter is effective
-//! @return 0 if OK, otherwise Error, check error definition
-int GET_HIDET_NOISE_FILTER_PARAMETERS(l3cam device, uint8_t *depth);
 
 
 #ifdef __cplusplus
