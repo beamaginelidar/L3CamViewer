@@ -268,7 +268,7 @@ void tcpPythonAPIReceiverController::initializeServer()
         return;
     }
 
-    if( bind(m_socket_fd ,(struct sockaddr *)&m_server , sizeof(m_server)) == SOCKET_ERROR)
+    if( bind(m_socket_fd ,(struct sockaddr *)&m_server , sizeof(m_server)) < 0)
     {
         m_server_started = false;
         m_server_initialized = false;
