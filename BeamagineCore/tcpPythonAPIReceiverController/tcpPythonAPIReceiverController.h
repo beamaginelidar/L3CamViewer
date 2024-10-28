@@ -122,9 +122,12 @@ private:
 
     int m_mask_size;
 
+#ifdef _WIN32
+    SOCKET m_socket_fd;
+    WSADATA m_wsa;
+#else
     int m_socket_fd;
-    int m_client_socket_fd;
-
+#endif
     uint16_t m_port;
 
     bool m_server_started;

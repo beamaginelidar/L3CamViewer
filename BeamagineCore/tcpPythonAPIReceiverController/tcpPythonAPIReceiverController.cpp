@@ -2,27 +2,42 @@
 #include <QFile>
 #include <QDebug>
 
+#ifdef _WIN32
+#else
 #include <pthread.h>
 #include <sys/ioctl.h>
-
+#endif
 #include <pythonAPICodes.h>
 
 std::mutex mtx;
 
 struct tcp_thread_data{
+#ifdef _WIN32
+    SOCKET socket_d;
+#else
     int socket_d;
+#endif
 };
 
 struct server_thread_data{
+#ifdef _WIN32
+    SOCKET server_socket_fd;
+#else
     int server_socket_fd;
+#endif
     struct sockaddr_in client_sockadd;
 };
 
 tcp_thread_data *data_for_protobuf_tcp_thread = NULL;
 server_thread_data *data_for_server_thread = NULL;
 
+#ifdef _WIN32
+HANDLE new_api_connection_thread_handler;
+HANDLE accepting_connection_thread_handler;
+#else
 pthread_t new_api_connection_thread_handler;
 pthread_t accepting_connection_thread_handler;
+#endif
 
 tcpPythonAPIReceiverController* tcpPythonAPIReceiverController::m_instance = NULL;
 
@@ -32,13 +47,21 @@ bool send_response = false;
 
 QString response_api = "";
 
-void *newAPIConnectionThread(void *params){
-
+#ifdef _WIN32
+DWORD WINAPI newAPIConnectionThread(void* params)
+#else
+void *newAPIConnectionThread(void *params)
+#endif
+{
     struct tcp_thread_data *data = (struct tcp_thread_data *) params;
-
-    int socket_d = data->socket_d;
     bool thread_alive = true;
     int size_rec = 0;
+
+#ifdef _WIN32
+    SOCKET socket_d = data->socket_d;
+#else
+    int socket_d = data->socket_d;
+#endif
 
     if(socket_d >= 0){
 
@@ -47,10 +70,11 @@ void *newAPIConnectionThread(void *params){
         while(thread_alive){
 
 #ifdef _WIN32
-            size_rec = recv(ClientSocket, buffer, 500, 0);
+            size_rec = recv(socket_d, buffer, 2000, 0);
 #else
             size_rec = read(socket_d , buffer, 2000);
 #endif
+
             //qDebug()<<"Reading finished size "<<size_rec;
 
             if ( size_rec > 0 ){
@@ -69,30 +93,36 @@ void *newAPIConnectionThread(void *params){
 
             }
 
-            //else if(size_rec < 0){
-            //    thread_alive = false;
-            //}
-
             if(send_response)
             {
                 //qDebug()<<"Sending response"<<response_api;
                 send(socket_d, (char*)response_api.toStdString().c_str(), response_api.size(), 0);
                 response_api = "";
                 send_response = false;
-
             }
-
         }
-
         free(buffer);
     }
 
+#ifdef _WIN32
+    closesocket(socket_d);
+    socket_d = INVALID_SOCKET;
+    WSACleanup();
+    return 0;
+#else
+    shutdown(socket_d, SHUT_RDWR);
     close(socket_d);
     free(data);
     pthread_exit(0);
+#endif
+
 }
 
+#ifdef _WIN32
+DWORD WINAPI acceptingConnectionThread(void *params){
+#else
 void *acceptingConnectionThread(void *params){
+#endif
 
     int addrlen = sizeof(sockaddr_in);
     timeval tv;
@@ -101,34 +131,63 @@ void *acceptingConnectionThread(void *params){
 
     struct server_thread_data *data = (struct server_thread_data *) params;
 
+#ifdef _WIN32
+    SOCKET socket_fd = data->server_socket_fd;
+    SOCKET client_socket_fd;
+#else
     int socket_fd = data->server_socket_fd;
+    int client_socket_fd = -1;
+#endif
+
     sockaddr_in client_add = data->client_sockadd;
     server_thread_started = true;
 
     while(server_thread_started){
-        int client_socket_fd = -1;
 
+#ifdef _WIN32
+
+        int size = sizeof(client_add);
+        client_socket_fd = accept(socket_fd,(struct sockaddr*)&client_add, &size);
+        if (client_socket_fd == INVALID_SOCKET) {
+            closesocket(client_socket_fd);
+            WSACleanup();
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            continue;
+        }
+#else
         if ((client_socket_fd = accept(socket_fd, (struct sockaddr *)&client_add, (socklen_t*)&addrlen)) < 0){
             close(client_socket_fd);
-            sleep(5);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
             continue;
         }
 
         timeval tv;
         tv.tv_sec = 0;
-        tv.tv_usec = 500000; // 200ms timewait
+        tv.tv_usec = 500000; // 500ms timewait
 
         setsockopt(client_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+#endif
 
         data_for_protobuf_tcp_thread = (struct tcp_thread_data*)malloc( sizeof(struct tcp_thread_data ));
         data_for_protobuf_tcp_thread->socket_d = client_socket_fd;
 
-
+#ifdef _WIN32
+        new_api_connection_thread_handler = CreateThread(NULL, 0, newAPIConnectionThread, (void*)data_for_protobuf_tcp_thread, 0, NULL);
+#else
         pthread_create (&new_api_connection_thread_handler, NULL, newAPIConnectionThread, (void*)data_for_protobuf_tcp_thread);
-    }
+#endif
 
+    }
+#ifdef _WIN32
+    closesocket(socket_fd);
+    socket_fd = INVALID_SOCKET;
+    WSACleanup();
+    return 0;
+#else
     close(socket_fd);
     pthread_exit(0);
+#endif
+
 }
 
 
@@ -160,8 +219,12 @@ tcpPythonAPIReceiverController *tcpPythonAPIReceiverController::Instance()
 tcpPythonAPIReceiverController::~tcpPythonAPIReceiverController()
 {
     server_thread_started = false;
+
+#ifdef _WIN32
+    closesocket(m_socket_fd);
+#else
     close(m_socket_fd);
-    close(m_client_socket_fd);
+#endif
 }
 
 void tcpPythonAPIReceiverController::setPort(uint16_t port)
@@ -179,22 +242,42 @@ void tcpPythonAPIReceiverController::initializeServer()
     m_server_started = false;
     m_server_initialized = false;
 
-    //qDebug()<<"tcpPythonAPIReceiverController::initializeServer Initializing python API server";
-
     m_server.sin_family = AF_INET;
     m_server.sin_addr.s_addr = INADDR_ANY;
     m_server.sin_port = htons(m_port);
 
-    if ( (m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
+#ifdef _WIN32
+    int error = WSAStartup(MAKEWORD(2,2), &m_wsa);
+
+    if (error != 0)
+    {
         m_server_started = false;
         m_server_initialized = false;
+        return;
+    }
+#endif
+
+    if ( (m_socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == 0)
+    {
+        m_server_started = false;
+        m_server_initialized = false;
+#ifdef _WIN32
+        WSACleanup();
+#endif
         qDebug()<<"tcpPythonAPIReceiverController::initializeServer Error creating socket";
         return;
     }
 
-    if (bind(m_socket_fd, (struct sockaddr *)&m_server, sizeof(m_server))<0 ){
+    if( bind(m_socket_fd ,(struct sockaddr *)&m_server , sizeof(m_server)) == SOCKET_ERROR)
+    {
         m_server_started = false;
         m_server_initialized = false;
+#ifdef _WIN32
+        closesocket(m_socket_fd);
+        WSACleanup();
+#else
+        close(m_socket_fd);
+#endif
         qDebug()<<"tcpPythonAPIReceiverController::initializeServer Error Binding socket";
         return;
     }
@@ -202,6 +285,12 @@ void tcpPythonAPIReceiverController::initializeServer()
     if (listen(m_socket_fd, 1) < 0){
         m_server_started = false;
         m_server_initialized = false;
+#ifdef _WIN32
+        closesocket(m_socket_fd);
+        WSACleanup();
+#else
+        close(m_socket_fd);
+#endif
         qDebug()<<"tcpPythonAPIReceiverController::initializeServer Error Listening socket";
         return;
     }
@@ -378,7 +467,12 @@ void tcpPythonAPIReceiverController::readHttpMessagesThread(){
     data_for_server_thread->client_sockadd = m_client;
     data_for_server_thread->server_socket_fd = m_socket_fd;
 
+#ifdef _WIN32
+    accepting_connection_thread_handler = CreateThread(NULL, 0, acceptingConnectionThread, (void*)data_for_server_thread, 0, NULL);
+#else
     pthread_create(&accepting_connection_thread_handler, NULL, acceptingConnectionThread, (void*)data_for_server_thread);
+#endif
+
 }
 
 void tcpPythonAPIReceiverController::sendEvent(QEvent::Type event_type, QEvent *event)

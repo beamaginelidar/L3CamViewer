@@ -2,6 +2,23 @@
 
 All notable changes to the L3CamViewer application will be documented in this file.
 
+## [28/10/2024] 3.0.1
+
+### Added
+
+- Python API support for external control of GUI
+- 
+
+### Changed
+
+### Fixed 
+
+### Removed
+
+### Known bugs
+
+### Issues
+
 ## [30/05/2024] 2.0.0
 
 ### Added 
