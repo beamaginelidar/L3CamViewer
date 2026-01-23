@@ -40,7 +40,7 @@
 udpReceiverController::udpReceiverController(QObject *parent) : QObject(parent)
 {
     m_udp_port = 6000;
-    m_address = "127.0.0.1";
+    m_address = "0.0.0.0";
 
     m_is_reading_image = false;
     m_is_pointcloud_ready = false;
@@ -114,6 +114,16 @@ void udpReceiverController::stopController()
 void udpReceiverController::setEventHandler(const QEvent::Type type, const QObject *event_handler)
 {
     m_event_handlers.insert(type, event_handler);
+}
+
+void udpReceiverController::setMulticastAddress(const QString &address)
+{
+    m_multicast_address = address;
+}
+
+void udpReceiverController::enableMulticastMode(const bool &multicast)
+{
+    m_multicast = multicast;
 }
 
 void udpReceiverController::run()
@@ -377,6 +387,8 @@ int udpReceiverController::initializeSocket()
         return m_error_code;
     }
 
+  //  res = setsockopt(m_udp_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&m_multicast_group, sizeof(m_multicast_group));
+
     if(bind(m_udp_socket, (sockaddr*)&m_socket, sizeof(m_socket)) == SOCKET_ERROR){
         m_error_code = -3;
         return m_error_code;
@@ -388,6 +400,7 @@ int udpReceiverController::initializeSocket()
         return m_error_code;
     }
 #else
+
     if( (m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
         qDebug()<<"Socket Error";
         m_error_code = -1;
@@ -395,29 +408,43 @@ int udpReceiverController::initializeSocket()
     }
 
     memset((char *) &m_socket, 0, sizeof(struct sockaddr_in));
-    m_socket.sin_addr.s_addr = inet_addr ((char*)m_address.toStdString().c_str());
-
     m_socket.sin_family = AF_INET;
     m_socket.sin_port = htons((int)m_udp_port);
 
-    if (inet_aton((char*)m_address.toStdString().c_str(), &m_socket.sin_addr) == 0)
+    if(m_multicast && !m_multicast_address.isEmpty())
     {
-        qDebug()<<"inet_aton() failed";
-        return -2;
+        m_socket.sin_addr.s_addr = INADDR_ANY;
+
+        m_multicast_group.imr_multiaddr.s_addr = inet_addr((char*)m_multicast_address.toStdString().c_str());
+        m_multicast_group.imr_interface.s_addr = inet_addr((char*)m_address.toStdString().c_str());
+
+        int res = 0;
+
+        res = setsockopt(m_socket_descriptor, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&m_multicast_group, sizeof(m_multicast_group));
+        if (res < 0)
+        {
+            qDebug() <<__func__<<"Error Adding multicast group";
+            close(m_socket_descriptor);
+            return -5;
+        }
+    }
+    else
+    {
+        m_socket.sin_addr.s_addr = inet_addr ((char*)m_address.toStdString().c_str());
     }
 
     if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
     {
         qDebug()<<"Could not bind name to socket";
         close(m_socket_descriptor);
-        return -3;
+        return -2;
     }
 
     //!set size for sockets
     int rcvbufsize = 134217728;
     if(0 != setsockopt(m_socket_descriptor,SOL_SOCKET,SO_RCVBUF,(char*)&rcvbufsize,sizeof(rcvbufsize))){
         qDebug()<<"Error setting size to socket";
-        return -4;
+        return -3;
     }
 
 #endif

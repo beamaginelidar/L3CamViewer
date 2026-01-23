@@ -37,10 +37,10 @@
 Q_DECLARE_METATYPE(uint16_t)
 Q_DECLARE_METATYPE(uint8_t)
 Q_DECLARE_METATYPE(int32_t)
+Q_DECLARE_METATYPE(uint32_t)
 Q_DECLARE_METATYPE(std::vector<detectionImage>)
 Q_DECLARE_METATYPE(pointcloudData)
 Q_DECLARE_METATYPE(imageData)
-Q_DECLARE_METATYPE(uint32_t)
 Q_DECLARE_METATYPE(binaryFloatData)
 
 #include <QSpinBox>
@@ -239,6 +239,25 @@ MainWindow::MainWindow(QWidget *parent) :
     initializePythonAPIServer();
 
     m_send_response_api = false;
+
+    //!dummy data for liveview
+    m_dlidar.image_type = RAINBOW;
+    m_dlidar.perception_enabled = false;
+    m_dlidar.sensor_status = 0;
+    m_dlidar.sensor_type = sensor_lidar;
+    m_dlidar.protocol = protocol_raw_udp;
+    m_dlidar.sensor_available = false;
+
+    m_dcamera.image_type = image_rgb;
+    m_dcamera.perception_enabled = false;
+    m_dcamera.sensor_status = 0;
+    m_dcamera.sensor_type = sensor_econ_rgb;
+    m_dcamera.protocol = protocol_raw_udp;
+    m_dcamera.sensor_available = false;
+
+    m_multicast_mode = false;
+    m_multicast_address = "";
+    m_receivers_initialized = false;
 }
 
 MainWindow::~MainWindow()
@@ -310,7 +329,7 @@ void MainWindow::deviceDetected()
 
     initializeSystemStatus();
 
-    initializeReceivers();
+    //initializeReceivers();
 
     initializePointCloudSelector();
 }
@@ -414,7 +433,17 @@ void MainWindow::initializePolDefault()
 
 void MainWindow::initializeReceivers()
 {
+    if(m_multicast_mode)
+    {
+        m_server_address = ui->lineEdit_live_local_address->text();
+        m_multicast_address = ui->lineEdit_multicast_address->text();
+    }
+
     if(m_lidar_sensor != NULL){
+
+        //!Set the multicast configuration
+        m_pointcloud_reader->setMulticastAddress(m_multicast_address);
+        m_pointcloud_reader->enableMulticastMode(m_multicast_mode);
 
         m_pointcloud_reader->setIpAddress(m_server_address);
         m_pointcloud_reader->setPort(m_pcd_port);
@@ -428,6 +457,10 @@ void MainWindow::initializeReceivers()
 
     if(m_rgb_sensor != NULL || m_allied_narrow_sensor != NULL){
 
+        //!Set the multicast configuration
+        m_rgb_image_reader->setMulticastAddress(m_multicast_address);
+        m_rgb_image_reader->enableMulticastMode(m_multicast_mode);
+
         m_rgb_image_reader->setIpAddress(m_server_address);
         m_rgb_image_reader->setPort(m_rgb_port);
         m_rgb_image_reader->doReadImageRgb(true);
@@ -440,6 +473,9 @@ void MainWindow::initializeReceivers()
 
     if(m_allied_wide_sensor!= NULL || m_pol_sensor != NULL){
 
+        m_rgb_pol_image_reader->setMulticastAddress(m_multicast_address);
+        m_rgb_pol_image_reader->enableMulticastMode(m_multicast_mode);
+
         m_rgb_pol_image_reader->setIpAddress(m_server_address);
         m_rgb_pol_image_reader->setPort(m_rgbp_port);
         m_rgb_pol_image_reader->doReadImageRgb(true);
@@ -451,6 +487,9 @@ void MainWindow::initializeReceivers()
     }
 
     if(m_thermal_sensor != NULL){
+
+        m_thermal_image_reader->setMulticastAddress(m_multicast_address);
+        m_thermal_image_reader->enableMulticastMode(m_multicast_mode);
 
         m_thermal_image_reader->setIpAddress(m_server_address);
         m_thermal_image_reader->setPort(m_thermal_port);
@@ -650,7 +689,7 @@ void MainWindow::on_pushButton_sensors_clicked()
 
     initializeSystemStatus();
 
-    initializeReceivers();
+    //initializeReceivers();
 
     initializePointCloudSelector();
 }
@@ -709,6 +748,11 @@ void MainWindow::searchTimerTimeOut()
             addMessageToLogWindow("Device address " + QString(m_devices[0].ip_address));
 
             deviceDetected();
+
+            if(!m_receivers_initialized){
+                initializeReceivers();
+                m_receivers_initialized = true;
+            }
 
             int error = L3CAM_OK;
             error = START_DEVICE(m_devices[0]);
@@ -1010,6 +1054,12 @@ void MainWindow::on_pushButton_start_device_clicked()
             addMessageToLogWindow("Stop device response - " + QString::number(error) + " - " + QString(getBeamErrorDescription(error)), logType::error);
         }
     }else{
+
+        if(!m_receivers_initialized){
+            initializeReceivers();
+            m_receivers_initialized = true;
+        }
+
         error = START_DEVICE(m_devices[0]);
         if(error == L3CAM_OK){
             ui->pushButton_start_device->setText("STOP DEVICE");
@@ -1075,7 +1125,7 @@ void MainWindow::pointCloudReadyToShow(int32_t *pointcloud_data, uint32_t timest
         }
     }
 
-    if(m_device_started){
+    if(m_device_started || m_multicast_mode){
         m_point_cloud_viewer->doShowPointCloud(pointcloud_data);
     }
 
@@ -1086,7 +1136,7 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
 {
     cv::Mat image_to_show;
 
-    if(m_device_started){
+    if(m_device_started || m_multicast_mode){
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
@@ -1151,7 +1201,7 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
 {
     cv::Mat image_to_show;
 
-    if(m_device_started){
+    if(m_device_started || m_multicast_mode){
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
@@ -1214,7 +1264,7 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
 {
     cv::Mat image_to_show;
 
-    if(m_device_started){
+    if(m_device_started || m_multicast_mode){
 
         image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
         cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
@@ -1256,7 +1306,7 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
 
 void MainWindow::temperatureDataReady(float *temperature_data, uint16_t height, uint16_t width, uint32_t timestamp)
 {
-    if(m_device_started){
+    if(m_device_started || m_multicast_mode){
 
         if(m_save_data && m_save_thermal_data_image){
 
@@ -1459,6 +1509,7 @@ void MainWindow::changeSaveDataSettings()
     }
 
     if(m_save_thermal_data_image){
+        m_path_to_save_thermal_bin = ui->lineEdit_save_thermal_bin_path->text();
         ui->checkBox_save_thermal_data->setDisabled(m_save_data);
         ui->lineEdit_save_thermal_bin_path->setDisabled(m_save_data);
         ui->pushButton_save_thermal_bin->setDisabled(m_save_data);
@@ -1469,21 +1520,25 @@ void MainWindow::changeSaveDataSettings()
         ui->lineEdit_save_pol_path->setDisabled(m_save_data);
         ui->pushButton_save_pol->setDisabled(m_save_data);
     }
+
     if(m_save_pointcloud){
         m_path_to_save_pointcloud = ui->lineEdit_save_pointcloud_path->text();
         ui->lineEdit_save_pointcloud_path->setDisabled(m_save_data);
         ui->pushButton_save_pointcloud->setDisabled(m_save_data);
     }
+
     if(m_save_rgb_image){
         m_path_to_save_rgb = ui->lineEdit_save_rgb_path->text();
         ui->lineEdit_save_rgb_path->setDisabled(m_save_data);
         ui->pushButton_save_rgb->setDisabled(m_save_data);
     }
+
     if(m_save_wide_image){
         m_path_to_save_wide = ui->lineEdit_save_wide_path->text();
         ui->lineEdit_save_wide_path->setDisabled(m_save_data);
         ui->pushButton_save_wide->setDisabled(m_save_data);
     }
+
     if(m_save_narrow_image){
         m_path_to_save_narrow = ui->lineEdit_save_narrow_path->text();
         ui->lineEdit_save_narrow_path->setDisabled(m_save_data);
@@ -3663,7 +3718,7 @@ void MainWindow::on_horizontalSlider_autobias_l_valueChanged(int value)
 
 void MainWindow::on_horizontalSlider_hidet_conta_depth_sliderMoved(int position)
 {
-   ui->label_hidet_conta_depth_val->setText(QString("%1 %").arg(position));
+    ui->label_hidet_conta_depth_val->setText(QString("%1 %").arg(position));
 }
 
 void MainWindow::on_horizontalSlider_hidet_conta_depth_sliderReleased()
@@ -3688,5 +3743,111 @@ void MainWindow::on_pushButton_get_hidet_conta_depth_clicked()
         ui->horizontalSlider_hidet_conta_depth->setValue(depth);
         ui->label_hidet_conta_depth_val->setText(QString("%1 %").arg(depth));
 
+    }
+}
+
+void MainWindow::on_checkBox_enable_hidet_clicked(bool checked)
+{
+    int error = ENABLE_HIDET_NOISE_FILTER(m_devices[0], checked);
+
+    if(error != L3CAM_OK)
+    {
+        addMessageToLogWindow("Error enabling/disabling hidet filter", logType::error);
+    }
+}
+
+void MainWindow::on_checkBox_lidar_clicked(bool checked)
+{
+
+    if(checked)
+    {
+        m_lidar_sensor = &m_dlidar;
+        m_lidar_sensor->sensor_available = true;
+    }else
+    {
+        m_lidar_sensor = NULL;
+    }
+}
+
+void MainWindow::on_checkBox_econ_clicked(bool checked)
+{
+    if(checked)
+    {
+        m_rgb_sensor = &m_dcamera;
+        m_rgb_sensor->sensor_available = true;
+    }else
+    {
+        m_rgb_sensor = NULL;
+    }
+}
+
+void MainWindow::on_checkBox_wide_clicked(bool checked)
+{
+
+    if(checked)
+    {
+        m_allied_wide_sensor = &m_dcamera;
+        m_allied_wide_sensor->sensor_available = true;
+    }else
+    {
+        m_allied_wide_sensor = NULL;
+    }
+}
+
+void MainWindow::on_checkBox_narrow_clicked(bool checked)
+{
+    if(checked)
+    {
+        m_allied_narrow_sensor = &m_dcamera;
+        m_allied_narrow_sensor->sensor_available = true;
+    }else
+    {
+        m_allied_narrow_sensor = NULL;
+    }
+}
+
+void MainWindow::on_checkBox_multicast_clicked(bool checked)
+{
+    int error = L3CAM_OK;
+
+    m_multicast_mode = checked;
+    m_multicast_address = ui->lineEdit_multicast_address->text();
+
+
+    if(m_devices_connected > 0)
+    {
+        if(checked)
+        {
+            error = ENABLE_MULTICAST_MODE(m_devices[0], checked, (char*)m_multicast_address.toStdString().c_str());
+        }
+        else
+        {
+            error = ENABLE_MULTICAST_MODE(m_devices[0], checked, "");
+        }
+
+        if(error != L3CAM_OK)
+        {
+            addMessageToLogWindow("Error enabling/disabling multicast mode in device", logType::error);
+        }
+    }
+}
+
+void MainWindow::on_checkBox_thermal_clicked(bool checked)
+{
+    if(checked)
+    {
+        m_thermal_sensor = &m_dcamera;
+        m_thermal_sensor->sensor_available = true;
+    }else
+    {
+        m_thermal_sensor = NULL;
+    }
+}
+
+void MainWindow::on_pushButton_live_view_clicked()
+{
+    if(!m_receivers_initialized){
+        initializeReceivers();
+        m_receivers_initialized = true;
     }
 }

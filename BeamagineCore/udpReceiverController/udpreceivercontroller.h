@@ -78,6 +78,11 @@ public:
 
     void setEventHandler(const QEvent::Type type, const QObject* event_handler);
 
+    void setMulticastAddress(const QString &address);
+
+    void enableMulticastMode(const bool &multicast);
+
+
 public slots:
     void run();
 
@@ -123,8 +128,10 @@ protected:
 private:
 
     QString m_address;
+    QString m_multicast_address;
     std::vector<detectionImage> m_detections;
     struct sockaddr_in m_socket;         //! local Socket
+    struct ip_mreq m_multicast_group;
 
 #ifdef _WIN32
     WSADATA m_wsa;
@@ -157,6 +164,8 @@ private:
     bool m_read_rgb;
     bool m_read_temperatures;
     bool m_is_reading_detections;
+
+    bool m_multicast;
 };
 
 #endif // UDPRECEIVERCONTROLLER_H

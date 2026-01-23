@@ -247,8 +247,8 @@ void saveDataManager::savePointerToPng(uint8_t *image_pointer, uint16_t width, u
 
 void saveDataManager::saveFloatBuffer(float *buffer, int buffer_size, uint32_t time_stamp)
 {
-    if(m_current_frame_number < m_max_frames_to_save){
-
+    if(m_current_frame_number < m_max_frames_to_save)
+    {
         binaryFloatData data;
 
         data.data_buffer = (float*)malloc(buffer_size);

@@ -475,6 +475,22 @@ private slots:
 
     void on_pushButton_get_hidet_conta_depth_clicked();
 
+    void on_checkBox_enable_hidet_clicked(bool checked);
+
+    void on_checkBox_lidar_clicked(bool checked);
+
+    void on_checkBox_econ_clicked(bool checked);
+
+    void on_checkBox_wide_clicked(bool checked);
+
+    void on_checkBox_narrow_clicked(bool checked);
+
+    void on_checkBox_multicast_clicked(bool checked);
+
+    void on_checkBox_thermal_clicked(bool checked);
+
+    void on_pushButton_live_view_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -515,6 +531,9 @@ private:
     sensor *m_allied_narrow_sensor;
     sensor *m_allied_wide_sensor;
 
+    sensor m_dlidar;
+    sensor m_dcamera;
+
     cv::dnn::Net m_faces_net;
 
     QString m_library_version;
@@ -536,6 +555,8 @@ private:
     QString m_path_to_save_rgb;
     QString m_path_to_save_wide;
     QString m_path_to_save_narrow;
+
+    QString m_multicast_address;
 
     QTimer *m_search_timer;
     QTimer *m_rgb_value_changed;
@@ -626,6 +647,10 @@ private:
     bool m_econ_wide_connected;
 
     bool m_send_response_api;
+
+    bool m_multicast_mode;
+
+    bool m_receivers_initialized;
 
 };
 

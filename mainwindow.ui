@@ -32,7 +32,7 @@
    <string>L3Cam Viewer</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../l3camStartUp/resources.qrc">
+   <iconset resource="resources.qrc">
     <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -315,7 +315,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_system">
      <attribute name="title">
@@ -849,7 +849,7 @@ QGroupBox {
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_124">
          <item>
-          <widget class="QLabel" name="label_fan_2">
+          <widget class="QLabel" name="label_allied_n_t">
            <property name="maximumSize">
             <size>
              <width>109</width>
@@ -882,7 +882,7 @@ QGroupBox {
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_127">
          <item>
-          <widget class="QLabel" name="label_fan_3">
+          <widget class="QLabel" name="label_allied_w_t">
            <property name="maximumSize">
             <size>
              <width>99</width>
@@ -1347,7 +1347,7 @@ QGroupBox {
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_lidar_status_2">
+          <widget class="QLabel" name="label_wide_status">
            <property name="minimumSize">
             <size>
              <width>110</width>
@@ -1374,7 +1374,7 @@ QGroupBox {
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_lidar_status_3">
+          <widget class="QLabel" name="label_narrow_status">
            <property name="minimumSize">
             <size>
              <width>110</width>
@@ -2966,7 +2966,7 @@ QGroupBox {
     </widget>
     <widget class="QWidget" name="tab_Allied">
      <attribute name="title">
-      <string>AlliedCameras</string>
+      <string>Allied Cameras</string>
      </attribute>
      <widget class="QWidget" name="layoutWidget_4">
       <property name="geometry">
@@ -4195,7 +4195,7 @@ QGroupBox {
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
-     <widget class="QGroupBox" name="groupBoxThermalSettings_2">
+     <widget class="QGroupBox" name="groupBoxAlliedCameraSelector">
       <property name="geometry">
        <rect>
         <x>70</x>
@@ -4288,7 +4288,7 @@ QGroupBox {
      <zorder>layoutWidget_13</zorder>
      <zorder>line_2</zorder>
      <zorder>line_3</zorder>
-     <zorder>groupBoxThermalSettings_2</zorder>
+     <zorder>groupBoxAlliedCameraSelector</zorder>
     </widget>
     <widget class="QWidget" name="tab_LiDAR">
      <attribute name="title">
@@ -4427,7 +4427,7 @@ QGroupBox {
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="label_pointcloud_color_range">
          <property name="font">
           <font>
            <family>Ubuntu</family>
@@ -4525,7 +4525,7 @@ QGroupBox {
               <string> mm</string>
              </property>
              <property name="maximum">
-              <number>200000</number>
+              <number>2000000</number>
              </property>
              <property name="value">
               <number>180000</number>
@@ -4570,7 +4570,7 @@ QGroupBox {
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="label_remote_filters">
            <property name="font">
             <font>
              <family>Ubuntu</family>
@@ -5071,6 +5071,13 @@ QGroupBox {
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
+          <widget class="QCheckBox" name="checkBox_enable_hidet">
+           <property name="text">
+            <string>Enabled</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QLabel" name="label_7">
            <property name="minimumSize">
             <size>
@@ -5217,9 +5224,228 @@ QGroupBox {
       </layout>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab_live_view">
+     <attribute name="title">
+      <string>Live View</string>
+     </attribute>
+     <widget class="QGroupBox" name="groupBoxLiveSensors">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>141</width>
+        <height>251</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 0px;
+    padding: 0 3px 0 3px;
+}
+QGroupBox {
+    border: 1px solid gray;
+    border-radius: 9px;
+    margin-top: 0.5em;
+}</string>
+      </property>
+      <property name="title">
+       <string>Live Sensors</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_15">
+       <item>
+        <widget class="QCheckBox" name="checkBox_lidar">
+         <property name="text">
+          <string>LiDAR</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_econ">
+         <property name="text">
+          <string>Econ </string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_thermal">
+         <property name="text">
+          <string>Thermal</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_wide">
+         <property name="text">
+          <string>Wide</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_narrow">
+         <property name="text">
+          <string>Narrow</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QGroupBox" name="groupBoxMultiCastSettings">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>90</y>
+        <width>281</width>
+        <height>111</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 0px;
+    padding: 0 3px 0 3px;
+}
+QGroupBox {
+    border: 1px solid gray;
+    border-radius: 9px;
+    margin-top: 0.5em;
+}</string>
+      </property>
+      <property name="title">
+       <string>Multicast Settings</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_21">
+       <item>
+        <widget class="QCheckBox" name="checkBox_multicast">
+         <property name="toolTip">
+          <string extracomment="When enabled, change Local Addres to NIC address"/>
+         </property>
+         <property name="toolTipDuration">
+          <number>-1</number>
+         </property>
+         <property name="statusTip">
+          <string extracomment="When enabled, change Local Addres to NIC address"/>
+         </property>
+         <property name="whatsThis">
+          <string extracomment="When enabled, change Local Addres to NIC address"/>
+         </property>
+         <property name="text">
+          <string>Enabled</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <widget class="QLabel" name="label_multicast_address">
+           <property name="text">
+            <string>Group address</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_multicast_address">
+           <property name="text">
+            <string>239.10.10.10</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QGroupBox" name="groupBoxLocalSettings">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>10</y>
+        <width>281</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 0px;
+    padding: 0 3px 0 3px;
+}
+QGroupBox {
+    border: 1px solid gray;
+    border-radius: 9px;
+    margin-top: 0.5em;
+}</string>
+      </property>
+      <property name="title">
+       <string>Local Settings</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_22">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_25">
+         <item>
+          <widget class="QLabel" name="label_live_address">
+           <property name="text">
+            <string>Local Address</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_live_local_address">
+           <property name="text">
+            <string>127.0.0.1</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QPushButton" name="pushButton_live_view">
+      <property name="geometry">
+       <rect>
+        <x>740</x>
+        <y>560</y>
+        <width>281</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>START LIVE VIEW</string>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="tab_data_collection">
      <attribute name="title">
-      <string>DataCollection</string>
+      <string>Data Collection</string>
      </attribute>
      <widget class="Line" name="line_8">
       <property name="geometry">
@@ -6046,6 +6272,8 @@ QGroupBox {
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

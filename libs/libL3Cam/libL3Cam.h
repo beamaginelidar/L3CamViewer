@@ -105,6 +105,13 @@ int GET_SENSORS_AVAILABLE(l3cam device, sensor sensors[], int *num_sensors);
 //! @return 0 if OK, otherwise Error, check error definition
 int CHANGE_STREAMING_PROTOCOL(l3cam device, sensor *sensor_id);
 
+//! @brief  Enables /disables the multicast streaming mode of a specific sensor
+//! @param  device The device to execute the function
+//! @param  enabled Boolean to enable/disable multicast mode
+//! @param  group_address IP address for multicast group where data will be streamed, when enabled=false, set this parameter to NULL
+//! @return 0 if OK, otherwise Error, check error definition
+int ENABLE_MULTICAST_MODE(l3cam device, bool enabled, char *group_address);
+
 //! @brief  Returns the RTSP pipeline for a specific sensor
 //! @param  device The device to execute the function
 //! @param  sensor The sensor to retrieve the RTSP pipeline
@@ -234,6 +241,12 @@ int CHANGE_HIDET_NOISE_FILTER_PARAMETERS(l3cam device, uint8_t depth);
 //! @param  depth Percentage that indicates the maximum depth that the filter is effective
 //! @return 0 if OK, otherwise Error, check error definition
 int GET_HIDET_NOISE_FILTER_PARAMETERS(l3cam device, uint8_t *depth);
+
+//! @brief  Enables or disables the high detectivity filter
+//! @param  device The device to execute the function
+//! @param  enabled True to enable the filter, False to disable it.
+//! @return None
+int ENABLE_HIDET_NOISE_FILTER(l3cam device, bool enabled);
 
 
 #ifdef __cplusplus
