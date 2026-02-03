@@ -58,6 +58,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QString title = "L3Cam Viewer - " + qApp->applicationVersion();
     this->setWindowTitle(title);
 
+    m_live_view = false;
+
     m_status_connected_style  = "border-radius: 5px; background-color: rgb(114,255,158); color:rgb(0,0,0);";
     m_status_error_style = "border-radius: 5px; background-color: rgb(255,114,114); color:rgb(0,0,0);";
     m_status_alarm_style = "border-radius: 5px; background-color: rgb(255,255,158); color:rgb(0,0,0);";
@@ -433,14 +435,20 @@ void MainWindow::initializePolDefault()
 
 void MainWindow::initializeReceivers()
 {
-    if(m_multicast_mode)
+
+    if(m_live_view)
     {
         m_server_address = ui->lineEdit_live_local_address->text();
+    }
+
+    if(m_multicast_mode)
+    {
         m_multicast_address = ui->lineEdit_multicast_address->text();
     }
 
     if(m_lidar_sensor != NULL){
 
+        //std::cout<<"Starting lidar receiver "<<m_server_address.toStdString()<<std::endl;
         //!Set the multicast configuration
         m_pointcloud_reader->setMulticastAddress(m_multicast_address);
         m_pointcloud_reader->enableMulticastMode(m_multicast_mode);
@@ -1125,7 +1133,7 @@ void MainWindow::pointCloudReadyToShow(int32_t *pointcloud_data, uint32_t timest
         }
     }
 
-    if(m_device_started || m_multicast_mode){
+    if(m_device_started || m_multicast_mode || m_live_view){
         m_point_cloud_viewer->doShowPointCloud(pointcloud_data);
     }
 
@@ -1136,7 +1144,7 @@ void MainWindow::imageRgbReadyToShow(uint8_t *image_data, uint16_t height, uint1
 {
     cv::Mat image_to_show;
 
-    if(m_device_started || m_multicast_mode){
+    if(m_device_started || m_multicast_mode || m_live_view){
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
@@ -1201,7 +1209,7 @@ void MainWindow::imageRgbPolReadyToShow(uint8_t *image_data, uint16_t height, ui
 {
     cv::Mat image_to_show;
 
-    if(m_device_started || m_multicast_mode){
+    if(m_device_started || m_multicast_mode || m_live_view){
 
         if(channels == 1){
             image_to_show = cv::Mat(height, width, CV_8UC1, image_data);
@@ -1264,7 +1272,7 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
 {
     cv::Mat image_to_show;
 
-    if(m_device_started || m_multicast_mode){
+    if(m_device_started || m_multicast_mode || m_live_view){
 
         image_to_show = cv::Mat(height, width, CV_8UC3, image_data);
         cv::cvtColor(image_to_show, image_to_show, cv::COLOR_BGR2RGB);
@@ -1306,7 +1314,7 @@ void MainWindow::imageThermalReadyToShow(uint8_t *image_data, uint16_t height, u
 
 void MainWindow::temperatureDataReady(float *temperature_data, uint16_t height, uint16_t width, uint32_t timestamp)
 {
-    if(m_device_started || m_multicast_mode){
+    if(m_device_started || m_multicast_mode || m_live_view){
 
         if(m_save_data && m_save_thermal_data_image){
 
@@ -3758,7 +3766,6 @@ void MainWindow::on_checkBox_enable_hidet_clicked(bool checked)
 
 void MainWindow::on_checkBox_lidar_clicked(bool checked)
 {
-
     if(checked)
     {
         m_lidar_sensor = &m_dlidar;
@@ -3813,6 +3820,7 @@ void MainWindow::on_checkBox_multicast_clicked(bool checked)
     m_multicast_mode = checked;
     m_multicast_address = ui->lineEdit_multicast_address->text();
 
+    std::string empty = "";
 
     if(m_devices_connected > 0)
     {
@@ -3822,7 +3830,7 @@ void MainWindow::on_checkBox_multicast_clicked(bool checked)
         }
         else
         {
-            error = ENABLE_MULTICAST_MODE(m_devices[0], checked, "");
+            error = ENABLE_MULTICAST_MODE(m_devices[0], checked, (char*)empty.c_str());
         }
 
         if(error != L3CAM_OK)
@@ -3847,6 +3855,7 @@ void MainWindow::on_checkBox_thermal_clicked(bool checked)
 void MainWindow::on_pushButton_live_view_clicked()
 {
     if(!m_receivers_initialized){
+        m_live_view = true;
         initializeReceivers();
         m_receivers_initialized = true;
     }

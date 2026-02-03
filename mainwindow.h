@@ -652,6 +652,8 @@ private:
 
     bool m_receivers_initialized;
 
+    bool m_live_view;
+
 };
 
 #endif // MAINWINDOW_H

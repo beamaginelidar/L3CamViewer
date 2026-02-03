@@ -153,7 +153,7 @@ PRE_TARGETDEPS += $$PWD/libs/libL3Cam/libL3Cam.a
 
 win32{
 #OPENCV
-INCLUDEPATH += 'D:/OpenCV/opencv/build/include/'
+INCLUDEPATH += 'D:/opencv_440/opencv/build/include/'
 
 LIBS += -L"$$PWD/libs/opencv4/" -lopencv_world440
 
@@ -202,12 +202,12 @@ LIBS += -L"$$PWD/libs/pcl-1.13.1/Windows/pcl-1.13/"  -lpcl_common \
 
 
 #LibL3cam
-LIBS += -L$$PWD/libs/libL3Cam/ -lL3Cam
+LIBS += -L$$PWD/libs/libL3Cam/win64/ -llibL3Cam
 
-INCLUDEPATH += $$PWD/libs/libL3Cam
-DEPENDPATH += $$PWD/libs/libL3Cam
+INCLUDEPATH += $$PWD/libs/win64/libL3Cam
+DEPENDPATH += $$PWD/libs/win64/libL3Cam
 
-PRE_TARGETDEPS += $$PWD/libs/libL3Cam/L3Cam.lib
+PRE_TARGETDEPS += $$PWD/libs/libL3Cam/win64/libL3Cam.lib
 
 LIBS += -L$$PWD/libs/libL3Cam/win_dependencies/ -liphlpapi
 DEPENDPATH += $$PWD/libs/libL3Cam/win_dependencies

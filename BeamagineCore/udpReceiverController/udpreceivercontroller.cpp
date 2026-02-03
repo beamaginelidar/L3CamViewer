@@ -35,6 +35,8 @@
 #include <unistd.h>
 #endif
 
+#include <iostream>
+
 #include <QDateTime>
 
 udpReceiverController::udpReceiverController(QObject *parent) : QObject(parent)
@@ -139,6 +141,8 @@ void udpReceiverController::run()
             readThermalData();
         }
     }else{
+        std::cout<<"udpReceiverController::"<<__func__<<" Error initializing UDP receiving socket"<<m_error_code<<std::endl;
+
         qDebug()<<"Error initializing UDP receiving socket"<<m_error_code;
     }
 }
@@ -382,7 +386,10 @@ int udpReceiverController::initializeSocket()
     m_socket.sin_family = AF_INET;
     m_socket.sin_port = htons((int)m_udp_port);
 
-    if (inet_pton(AF_INET, (char*)m_address.toStdString().c_str(), &(m_socket.sin_addr)) != 1) {
+    int err = inet_pton(AF_INET, (char*)m_address.toStdString().c_str(), &(m_socket.sin_addr));
+
+    if ( err != 1) {
+        std::cout<<"udpReceiverController::"<<__func__<<" Error with pton "<<err<<" - "<<m_address.toStdString()<<std::endl;
         m_error_code = -5;
         return m_error_code;
     }
